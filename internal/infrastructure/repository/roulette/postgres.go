@@ -42,7 +42,11 @@ func (r *PostgresRouletteRepository) ListByUser(ctx context.Context, userUID str
 
 	result := make([]entity.Roulette, len(models))
 	for i, m := range models {
-		result[i] = m.toEntity()
+		entity, err := m.toEntity()
+		if err != nil {
+			return nil, err
+		}
+		result[i] = entity
 	}
 	return result, nil
 }
@@ -52,7 +56,7 @@ func (r *PostgresRouletteRepository) GetByID(ctx context.Context, id string) (en
 	if err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error; err != nil {
 		return entity.Roulette{}, err
 	}
-	return m.toEntity(), nil
+	return m.toEntity()
 }
 
 func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.Roulette) (entity.Roulette, error) {
@@ -77,16 +81,18 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 		return entity.Roulette{}, err
 	}
 
-	return model.toEntity(), nil
+	return model.toEntity()
 }
 
 func (r *PostgresRouletteRepository) Delete(ctx context.Context, id string, userUID string) error {
 	return r.db.WithContext(ctx).Where("id = ? AND user_uid = ?", id, userUID).Delete(&rouletteModel{}).Error
 }
 
-func (m rouletteModel) toEntity() entity.Roulette {
+func (m rouletteModel) toEntity() (entity.Roulette, error) {
 	var items []entity.RouletteItem
-	_ = json.Unmarshal([]byte(m.Items), &items)
+	if err := json.Unmarshal([]byte(m.Items), &items); err != nil {
+		return entity.Roulette{}, fmt.Errorf("failed to unmarshal items: %w", err)
+	}
 
 	return entity.Roulette{
 		ID:          m.ID,
@@ -96,5 +102,5 @@ func (m rouletteModel) toEntity() entity.Roulette {
 		Items:       items,
 		CreatedAt:   m.CreatedAt,
 		UpdatedAt:   m.UpdatedAt,
-	}
+	}, nil
 }
