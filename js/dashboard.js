@@ -54,27 +54,74 @@ async function loadRoulettes() {
     if (!res.ok) throw new Error("ルーレット一覧の取得に失敗しました。");
     const roulettes = await res.json();
 
+    roulettesList.innerHTML = "";
     if (roulettes && roulettes.length > 0) {
         roulettesEmpty.style.display = "none";
-        roulettesList.innerHTML = roulettes.map(r => `
-            <div class="admin-user-item">
-                <div class="admin-user-summary">
-                    <strong style="color: var(--text-main); font-size: 1.1rem;">${r.title}</strong>
-                    <p style="font-size: 0.85rem;">${r.items ? r.items.length : 0} 項目</p>
-                </div>
-                <div class="admin-user-meta">
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="playRoulette('${r.id}')" class="btn primary" style="padding: 4px 12px; font-size: 0.8rem;">Play</button>
-                        <button onclick="openEditModal(${JSON.stringify(r).replace(/"/g, '&quot;')})" class="btn" style="padding: 4px 12px; font-size: 0.8rem;">編集</button>
-                        <button onclick="deleteRoulette('${r.id}')" class="btn" style="padding: 4px 12px; font-size: 0.8rem; color: #ef476f;">削除</button>
-                    </div>
-                    <small style="margin-top: 4px;">更新: ${new Date(r.updatedAt).toLocaleDateString()}</small>
-                </div>
-            </div>
-        `).join("");
+        roulettes.forEach(r => {
+            const item = document.createElement("div");
+            item.className = "admin-user-item";
+
+            const summary = document.createElement("div");
+            summary.className = "admin-user-summary";
+
+            const title = document.createElement("strong");
+            title.style.color = "var(--text-main)";
+            title.style.fontSize = "1.1rem";
+            title.textContent = r.title;
+
+            const count = document.createElement("p");
+            count.style.fontSize = "0.85rem";
+            count.textContent = `${r.items ? r.items.length : 0} 項目`;
+
+            summary.appendChild(title);
+            summary.appendChild(count);
+
+            const meta = document.createElement("div");
+            meta.className = "admin-user-meta";
+
+            const actions = document.createElement("div");
+            actions.style.display = "flex";
+            actions.style.gap = "8px";
+
+            const playBtn = document.createElement("button");
+            playBtn.className = "btn primary";
+            playBtn.style.padding = "4px 12px";
+            playBtn.style.fontSize = "0.8rem";
+            playBtn.textContent = "Play";
+            playBtn.onclick = () => window.playRoulette(r.id);
+
+            const editBtn = document.createElement("button");
+            editBtn.className = "btn";
+            editBtn.style.padding = "4px 12px";
+            editBtn.style.fontSize = "0.8rem";
+            editBtn.textContent = "編集";
+            editBtn.onclick = () => window.openEditModal(r);
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "btn";
+            deleteBtn.style.padding = "4px 12px";
+            deleteBtn.style.fontSize = "0.8rem";
+            deleteBtn.style.color = "#ef476f";
+            deleteBtn.textContent = "削除";
+            deleteBtn.onclick = () => window.deleteRoulette(r.id);
+
+            actions.appendChild(playBtn);
+            actions.appendChild(editBtn);
+            actions.appendChild(deleteBtn);
+
+            const updated = document.createElement("small");
+            updated.style.marginTop = "4px";
+            updated.textContent = `更新: ${new Date(r.updatedAt).toLocaleDateString()}`;
+
+            meta.appendChild(actions);
+            meta.appendChild(updated);
+
+            item.appendChild(summary);
+            item.appendChild(meta);
+            roulettesList.appendChild(item);
+        });
     } else {
         roulettesEmpty.style.display = "block";
-        roulettesList.innerHTML = "";
     }
 }
 

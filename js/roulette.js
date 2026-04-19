@@ -127,19 +127,32 @@ async function loadSelectionList(auth) {
     });
     const roulettes = await res.json();
 
+    roulettesList.innerHTML = "";
     if (roulettes && roulettes.length > 0) {
         roulettesEmpty.style.display = "none";
-        roulettesList.innerHTML = roulettes.map(r => `
-            <div class="admin-user-item" onclick="window.location.href='/roulette?id=${r.id}'" style="cursor: pointer;">
-                <div class="admin-user-summary">
-                    <strong style="color: var(--text-main); font-size: 1.1rem;">${r.title}</strong>
-                    <p style="font-size: 0.85rem;">${r.items ? r.items.length : 0} 項目</p>
-                </div>
-                <div class="admin-user-meta">
-                    <span class="btn" style="padding: 4px 16px; font-size: 0.8rem;">Play</span>
-                </div>
-            </div>
-        `).join("");
+        roulettes.forEach(r => {
+            const item = document.createElement("div");
+            item.className = "admin-user-item";
+            item.style.cursor = "pointer";
+            item.onclick = () => { window.location.href = `/roulette?id=${r.id}`; };
+
+            const summary = document.createElement("div");
+            summary.className = "admin-user-summary";
+
+            const title = document.createElement("strong");
+            title.style.color = "var(--text-main)";
+            title.style.fontSize = "1.1rem";
+            title.textContent = r.title;
+
+            const count = document.createElement("p");
+            count.style.fontSize = "0.85rem";
+            count.textContent = `${r.items ? r.items.length : 0} 項目`;
+
+            summary.appendChild(title);
+            summary.appendChild(count);
+            item.appendChild(summary);
+            roulettesList.appendChild(item);
+        });
     } else {
         roulettesEmpty.style.display = "block";
     }
