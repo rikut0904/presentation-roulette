@@ -42,7 +42,9 @@ func Migrate(db *gorm.DB) error {
 		version := filename // Use filename as version identifier
 
 		var count int64
-		db.Model(&SchemaMigration{}).Where("version = ?", version).Count(&count)
+		if err := db.Model(&SchemaMigration{}).Where("version = ?", version).Count(&count).Error; err != nil {
+			return fmt.Errorf("failed to check migration status for %s: %w", filename, err)
+		}
 		if count > 0 {
 			continue // Already applied
 		}
