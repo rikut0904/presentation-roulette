@@ -95,7 +95,7 @@ export function renderHistory() {
     if (!container) return;
 
     if (state.history.length === 0) {
-        container.innerHTML = `<p style="color: var(--muted); padding: 20px; text-align: center;">履歴はありません</p>`;
+        container.innerHTML = `<p style="color: var(--text-muted); padding: 20px; text-align: center;">履歴はありません</p>`;
         return;
     }
 
