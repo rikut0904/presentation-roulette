@@ -16,12 +16,23 @@ const state = {
 
 // --- Storage Logic ---
 
+function loadJSONFromStorage(key, fallback) {
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+        return fallback;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (_error) {
+        localStorage.removeItem(key);
+        return fallback;
+    }
+}
+
 function loadFromCache() {
-    const savedItems = localStorage.getItem("roulette-items");
-    const savedHistory = localStorage.getItem("roulette-history");
-    
-    state.items = savedItems ? JSON.parse(savedItems) : [...DEFAULT_ITEMS];
-    state.history = savedHistory ? JSON.parse(savedHistory) : [];
+    state.items = loadJSONFromStorage("roulette-items", [...DEFAULT_ITEMS]);
+    state.history = loadJSONFromStorage("roulette-history", []);
 }
 
 function saveToCache() {
