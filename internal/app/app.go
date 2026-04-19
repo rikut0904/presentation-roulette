@@ -1,14 +1,12 @@
 package app
 
 import (
-	"encoding/gob"
 	"fmt"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 
-	"presentation-roulette/internal/domain/entity"
 	"presentation-roulette/internal/infrastructure/auth"
 	"presentation-roulette/internal/infrastructure/config"
 	"presentation-roulette/internal/infrastructure/database"
@@ -19,15 +17,14 @@ import (
 	"presentation-roulette/internal/usecase"
 )
 
-func init() {
-	gob.Register(entity.User{})
-}
-
 func Run() error {
 	cfg := config.Load()
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
 
 	e := echo.New()
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cfg.SessionSecret))))
+	e.Use(session.Middleware(newSessionStore(cfg)))
 
 	adminHandler, adminErr := buildAdminHandler(cfg)
 
@@ -40,7 +37,18 @@ func Run() error {
 	return e.Start(cfg.ServerAddr)
 }
 
-	func buildAdminHandler(cfg config.Config) (*handler.AdminHandler, error) {
+func newSessionStore(cfg config.Config) sessions.Store {
+	if cfg.SessionEncryptionSecret != "" {
+		return sessions.NewCookieStore(
+			[]byte(cfg.SessionSecret),
+			[]byte(cfg.SessionEncryptionSecret),
+		)
+	}
+
+	return sessions.NewCookieStore([]byte(cfg.SessionSecret))
+}
+
+func buildAdminHandler(cfg config.Config) (*handler.AdminHandler, error) {
 	clientConfig := handler.FirebaseClientConfig{
 		APIKey:     cfg.FirebaseAPIKey,
 		AuthDomain: cfg.FirebaseAuthDomain,
@@ -68,4 +76,4 @@ func Run() error {
 
 	adminUsecase := usecase.NewAdminUsecase(userRepository, rouletteRepository, tokenVerifier)
 	return handler.NewAdminHandler(adminUsecase, clientConfig), nil
-	}
+}

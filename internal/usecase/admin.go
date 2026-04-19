@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"time"
 	"presentation-roulette/internal/domain/entity"
 	"presentation-roulette/internal/domain/repository"
 	"presentation-roulette/internal/domain/service"
+	"time"
 )
 
 type AdminUsecase struct {
@@ -40,6 +40,10 @@ func (u *AdminUsecase) SyncUser(ctx context.Context, idToken string) (entity.Use
 	}
 
 	return u.userRepo.Upsert(ctx, user)
+}
+
+func (u *AdminUsecase) GetUserByUID(ctx context.Context, uid string) (entity.User, error) {
+	return u.userRepo.GetByUID(ctx, uid)
 }
 
 func (u *AdminUsecase) ListRoulettes(ctx context.Context, userUID string) ([]entity.Roulette, error) {

@@ -10,11 +10,11 @@ import (
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, _ := session.Get("session", c)
-		user, ok := sess.Values["user"]
-		if !ok || user == nil {
+		userUID, ok := sess.Values["uid"].(string)
+		if !ok || userUID == "" {
 			return echo.NewHTTPError(http.StatusUnauthorized, "ログインしてください")
 		}
-		c.Set("user", user)
+		c.Set("userUID", userUID)
 		return next(c)
 	}
 }

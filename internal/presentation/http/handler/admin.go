@@ -65,7 +65,7 @@ func (h *AdminHandler) Login(c echo.Context) error {
 	}
 
 	sess, _ := session.Get("session", c)
-	sess.Values["user"] = user
+	sess.Values["uid"] = user.UID
 	sess.Options = &sessions.Options{
 		Path:     "/",
 		HttpOnly: true,
@@ -81,7 +81,7 @@ func (h *AdminHandler) Login(c echo.Context) error {
 
 func (h *AdminHandler) Logout(c echo.Context) error {
 	sess, _ := session.Get("session", c)
-	delete(sess.Values, "user")
+	delete(sess.Values, "uid")
 	sess.Options = &sessions.Options{
 		Path:     "/",
 		HttpOnly: true,
@@ -105,7 +105,7 @@ func (h *AdminHandler) SyncUser(c echo.Context) error {
 	}
 
 	sess, _ := session.Get("session", c)
-	sess.Values["user"] = user
+	sess.Values["uid"] = user.UID
 	sess.Save(c.Request(), c.Response())
 
 	return c.JSON(http.StatusOK, user)
@@ -116,8 +116,8 @@ func (h *AdminHandler) ListRoulettes(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	user := c.Get("user").(entity.User)
-	roulettes, err := h.usecase.ListRoulettes(c.Request().Context(), user.UID)
+	userUID := c.Get("userUID").(string)
+	roulettes, err := h.usecase.ListRoulettes(c.Request().Context(), userUID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
@@ -129,12 +129,12 @@ func (h *AdminHandler) SaveRoulette(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	user := c.Get("user").(entity.User)
+	userUID := c.Get("userUID").(string)
 	var r entity.Roulette
 	if err := c.Bind(&r); err != nil {
 		return err
 	}
-	r.UserUID = user.UID
+	r.UserUID = userUID
 
 	saved, err := h.usecase.SaveRoulette(c.Request().Context(), r)
 	if err != nil {
@@ -148,9 +148,9 @@ func (h *AdminHandler) DeleteRoulette(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	user := c.Get("user").(entity.User)
+	userUID := c.Get("userUID").(string)
 	id := c.Param("id")
-	err := h.usecase.DeleteRoulette(c.Request().Context(), id, user.UID)
+	err := h.usecase.DeleteRoulette(c.Request().Context(), id, userUID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
@@ -162,9 +162,9 @@ func (h *AdminHandler) GetRoulette(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	user := c.Get("user").(entity.User)
+	userUID := c.Get("userUID").(string)
 	id := c.Param("id")
-	roulette, err := h.usecase.GetRoulette(c.Request().Context(), user.UID, id)
+	roulette, err := h.usecase.GetRoulette(c.Request().Context(), userUID, id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found or unauthorized")
 	}
@@ -172,7 +172,11 @@ func (h *AdminHandler) GetRoulette(c echo.Context) error {
 }
 
 func (h *AdminHandler) GetMe(c echo.Context) error {
-	user := c.Get("user").(entity.User)
+	userUID := c.Get("userUID").(string)
+	user, err := h.usecase.GetUserByUID(c.Request().Context(), userUID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "ユーザー情報の取得に失敗しました")
+	}
 	return c.JSON(http.StatusOK, user)
 }
 

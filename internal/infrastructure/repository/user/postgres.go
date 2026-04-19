@@ -58,6 +58,15 @@ func (r *PostgresUserRepository) Upsert(ctx context.Context, user entity.User) (
 	return toEntity(model), nil
 }
 
+func (r *PostgresUserRepository) GetByUID(ctx context.Context, uid string) (entity.User, error) {
+	var model userModel
+	if err := r.db.WithContext(ctx).Where("uid = ?", uid).First(&model).Error; err != nil {
+		return entity.User{}, err
+	}
+
+	return toEntity(model), nil
+}
+
 func (r *PostgresUserRepository) List(ctx context.Context) ([]entity.User, error) {
 	var models []userModel
 	if err := r.db.WithContext(ctx).Order("updated_at desc").Find(&models).Error; err != nil {

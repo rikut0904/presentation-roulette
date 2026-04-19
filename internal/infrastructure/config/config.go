@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,6 +18,7 @@ type Config struct {
 	FirebaseServiceAccountPath string
 	AutoMigrate                bool
 	SessionSecret              string
+	SessionEncryptionSecret    string
 }
 
 func Load() Config {
@@ -33,7 +35,20 @@ func Load() Config {
 		FirebaseServiceAccountPath: os.Getenv("FIREBASE_SERVICE_ACCOUNT_PATH"),
 		AutoMigrate:                os.Getenv("AUTO_MIGRATE") == "true",
 		SessionSecret:              os.Getenv("SESSION_SECRET"),
+		SessionEncryptionSecret:    os.Getenv("SESSION_ENCRYPTION_SECRET"),
 	}
+}
+
+func (c Config) Validate() error {
+	if len(c.SessionSecret) < 32 {
+		return fmt.Errorf("SESSION_SECRET must be at least 32 bytes")
+	}
+
+	if c.SessionEncryptionSecret != "" && len(c.SessionEncryptionSecret) < 32 {
+		return fmt.Errorf("SESSION_ENCRYPTION_SECRET must be at least 32 bytes when set")
+	}
+
+	return nil
 }
 
 func getEnv(key string, fallback string) string {
