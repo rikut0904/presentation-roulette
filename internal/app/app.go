@@ -27,12 +27,11 @@ func Run() error {
 	e.Use(session.Middleware(newSessionStore(cfg)))
 
 	adminHandler, adminErr := buildAdminHandler(cfg)
+	if adminErr != nil {
+		return adminErr
+	}
 
 	router.Register(e, adminHandler)
-
-	if adminErr != nil {
-		e.Logger.Warn(adminErr)
-	}
 
 	return e.Start(cfg.ServerAddr)
 }
