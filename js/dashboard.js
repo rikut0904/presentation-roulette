@@ -206,12 +206,15 @@ async function setupFirebase() {
 
         onAuthStateChanged(firebaseAuth, async (user) => {
             if (user) {
-                setStatus("ログイン中: " + user.email);
+                document.getElementById("user-email").textContent = user.email;
                 try {
+                    setStatus("データを読み込んでいます...");
                     await syncUserSession(user);
                     await loadRoulettes();
+                    statusElement.style.display = "none"; // 成功したら非表示
                 } catch (err) {
                     setStatus(err.message, "error");
+                    statusElement.style.display = "block"; // エラー時は表示
                 }
             } else {
                 window.location.href = "/login";

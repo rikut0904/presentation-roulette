@@ -205,22 +205,26 @@ async function setupFirebase() {
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                setStatus("ログイン中: " + user.email);
+                document.getElementById("user-email").textContent = user.email;
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get("id");
 
-                if (id) {
-                    viewSelection.style.display = "none";
-                    viewPlay.style.display = "block";
-                    try {
+                try {
+                    if (id) {
+                        setStatus("ルーレットを読み込んでいます...");
+                        viewSelection.style.display = "none";
+                        viewPlay.style.display = "block";
                         await loadRouletteByID(auth, id);
-                    } catch (err) {
-                        setStatus(err.message, "error");
+                    } else {
+                        setStatus("一覧を取得しています...");
+                        viewSelection.style.display = "block";
+                        viewPlay.style.display = "none";
+                        await loadSelectionList(auth);
                     }
-                } else {
-                    viewSelection.style.display = "block";
-                    viewPlay.style.display = "none";
-                    await loadSelectionList(auth);
+                    statusElement.style.display = "none"; // 成功したら非表示
+                } catch (err) {
+                    setStatus(err.message, "error");
+                    statusElement.style.display = "block"; // エラー時は再表示
                 }
             } else {
                 window.location.href = "/login";
