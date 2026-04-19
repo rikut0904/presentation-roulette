@@ -67,6 +67,22 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 
 	if roulette.ID == "" || roulette.ID == "0" {
 		roulette.ID = uuid.New().String()
+	} else {
+		// Verify ownership before update
+		var count int64
+		if err := r.db.WithContext(ctx).Model(&rouletteModel{}).Where("id = ?", roulette.ID).Count(&count).Error; err != nil {
+			return entity.Roulette{}, err
+		}
+		if count > 0 {
+			// Record exists, check ownership
+			var existing rouletteModel
+			if err := r.db.WithContext(ctx).First(&existing, "id = ?", roulette.ID).Error; err != nil {
+				return entity.Roulette{}, err
+			}
+			if existing.UserUID != roulette.UserUID {
+				return entity.Roulette{}, fmt.Errorf("unauthorized: this roulette does not belong to you")
+			}
+		}
 	}
 
 	model := rouletteModel{
