@@ -1,0 +1,62 @@
+package app
+
+import (
+	"fmt"
+
+	"github.com/labstack/echo/v4"
+
+	"presentation-roulette/internal/infrastructure/auth"
+	"presentation-roulette/internal/infrastructure/config"
+	"presentation-roulette/internal/infrastructure/database"
+	userinfra "presentation-roulette/internal/infrastructure/repository/user"
+	rouletteinfra "presentation-roulette/internal/infrastructure/repository/roulette"
+	"presentation-roulette/internal/presentation/http/handler"
+	"presentation-roulette/internal/presentation/http/router"
+	"presentation-roulette/internal/usecase"
+	)
+
+	func Run() error {
+	cfg := config.Load()
+
+	e := echo.New()
+
+	adminHandler, adminErr := buildAdminHandler(cfg)
+
+	router.Register(e, adminHandler)
+
+	if adminErr != nil {
+		e.Logger.Warn(adminErr)
+	}
+
+	return e.Start(cfg.ServerAddr)
+	}
+
+	func buildAdminHandler(cfg config.Config) (*handler.AdminHandler, error) {
+	clientConfig := handler.FirebaseClientConfig{
+		APIKey:     cfg.FirebaseAPIKey,
+		AuthDomain: cfg.FirebaseAuthDomain,
+		ProjectID:  cfg.FirebaseProjectID,
+		AppID:      cfg.FirebaseAppID,
+	}
+
+	db, err := database.NewPostgresConnection(cfg.DatabaseURL)
+	if err != nil {
+		return handler.NewUnavailableAdminHandler(clientConfig, fmt.Sprintf("database unavailable: %v", err)), err
+	}
+
+	userRepository := userinfra.NewPostgresUserRepository(db)
+	rouletteRepository := rouletteinfra.NewPostgresRouletteRepository(db)
+	if cfg.AutoMigrate {
+		if err := database.Migrate(db); err != nil {
+			return handler.NewUnavailableAdminHandler(clientConfig, fmt.Sprintf("migration failed: %v", err)), err
+		}
+	}
+
+	tokenVerifier, err := auth.NewFirebaseVerifier(cfg)
+	if err != nil {
+		return handler.NewUnavailableAdminHandler(clientConfig, fmt.Sprintf("firebase unavailable: %v", err)), err
+	}
+
+	adminUsecase := usecase.NewAdminUsecase(userRepository, rouletteRepository, tokenVerifier)
+	return handler.NewAdminHandler(adminUsecase, clientConfig), nil
+	}

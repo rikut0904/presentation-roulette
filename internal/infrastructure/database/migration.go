@@ -1,0 +1,73 @@
+package database
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type SchemaMigration struct {
+	Version   string    `gorm:"primaryKey"`
+	AppliedAt time.Time `gorm:"autoCreateTime"`
+}
+
+func Migrate(db *gorm.DB) error {
+	// Create migration tracking table if not exists
+	if err := db.AutoMigrate(&SchemaMigration{}); err != nil {
+		return fmt.Errorf("failed to create migration table: %w", err)
+	}
+
+	// Read migration files
+	files, err := os.ReadDir("migrations")
+	if err != nil {
+		return fmt.Errorf("failed to read migrations directory: %w", err)
+	}
+
+	var migrationFiles []string
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".sql") {
+			migrationFiles = append(migrationFiles, f.Name())
+		}
+	}
+	sort.Strings(migrationFiles)
+
+	// Apply migrations
+	for _, filename := range migrationFiles {
+		version := filename // Use filename as version identifier
+
+		var count int64
+		db.Model(&SchemaMigration{}).Where("version = ?", version).Count(&count)
+		if count > 0 {
+			continue // Already applied
+		}
+
+		log.Printf("Applying migration: %s", filename)
+		content, err := os.ReadFile(filepath.Join("migrations", filename))
+		if err != nil {
+			return fmt.Errorf("failed to read migration file %s: %w", filename, err)
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Exec(string(content)).Error; err != nil {
+				return err
+			}
+			if err := tx.Create(&SchemaMigration{Version: version}).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to apply migration %s: %w", filename, err)
+		}
+		log.Printf("Successfully applied migration: %s", filename)
+	}
+
+	return nil
+}

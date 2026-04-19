@@ -1,40 +1,40 @@
+const COLORS = ["#ef476f", "#ff9f1c", "#ffd166", "#06d6a0", "#118ab2", "#7b2cbf"];
+const DEFAULT_ITEMS = [
+    { label: "参加者A", color: "#ef476f" },
+    { label: "参加者B", color: "#ff9f1c" },
+    { label: "参加者C", color: "#ffd166" },
+    { label: "参加者D", color: "#06d6a0" },
+    { label: "参加者E", color: "#118ab2" },
+];
+
 const state = {
-    config: null,
+    items: [],
+    history: [],
     rotation: 0,
     spinning: false,
 };
 
-const view = () => document.getElementById("view");
+// --- Storage Logic ---
 
-function navigate(path) {
-    if (location.pathname !== path) {
-        history.pushState({}, "", path);
-    }
-    renderRoulette();
+function loadFromCache() {
+    const savedItems = localStorage.getItem("roulette-items");
+    const savedHistory = localStorage.getItem("roulette-history");
+    
+    state.items = savedItems ? JSON.parse(savedItems) : [...DEFAULT_ITEMS];
+    state.history = savedHistory ? JSON.parse(savedHistory) : [];
 }
 
-window.addEventListener("popstate", renderRoulette);
-
-document.addEventListener("click", (event) => {
-    const link = event.target.closest("a[data-link]");
-    if (!link) return;
-    event.preventDefault();
-    navigate(new URL(link.href).pathname);
-});
-
-async function fetchRoulette() {
-    const res = await fetch("/api/roulette", { cache: "no-store" });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return res.json();
+function saveToCache() {
+    localStorage.setItem("roulette-items", JSON.stringify(state.items));
+    localStorage.setItem("roulette-history", JSON.stringify(state.history));
 }
 
-async function spinRoulette() {
-    const res = await fetch("/api/roulette/spin", { method: "POST" });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return res.json();
-}
+// --- UI Rendering ---
 
 function buildWheelBackground(items) {
+    if (items.length === 0) return "#ccc";
+    if (items.length === 1) return items[0].color;
+    
     const step = 360 / items.length;
     const stops = items.map((item, index) => {
         const start = (step * index).toFixed(2);
@@ -44,13 +44,136 @@ function buildWheelBackground(items) {
     return `conic-gradient(${stops.join(", ")})`;
 }
 
-function renderRouletteShell(config) {
-    const wheel = document.querySelector(".wheel");
+export function renderItems() {
+    const container = document.getElementById("item-list");
+    if (!container) return;
+    
+    container.innerHTML = state.items.map((item, index) => `
+        <div class="legend-item">
+            <span class="legend-color" style="background: ${item.color};"></span>
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                <span>${item.label}</span>
+                <button onclick="removeItem(${index})" style="background: none; border: none; color: #ef476f; cursor: pointer; font-size: 1.2rem; padding: 0 8px;">&times;</button>
+            </div>
+        </div>
+    `).join("");
+    
+    renderWheel();
+}
+
+export function renderHistory() {
+    const container = document.getElementById("history-list");
+    if (!container) return;
+
+    if (state.history.length === 0) {
+        container.innerHTML = `<p style="color: var(--muted); padding: 20px; text-align: center;">履歴はありません</p>`;
+        return;
+    }
+    
+    container.innerHTML = state.history.map(item => `
+        <article class="intro-roulette-card">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="intro-color-dot" style="background: ${item.color};"></span>
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">${item.label}</h3>
+            </div>
+            <small style="color: var(--text-muted); font-weight: 500;">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+        </article>
+    `).join("");
+}
+
+function renderWheel() {
+    const wheel = document.getElementById("index-wheel");
+    if (!wheel) return;
     wheel.innerHTML = `
-        <div class="wheel-surface" style="background: ${buildWheelBackground(config.items)};"></div>
-        <div class="wheel-center">START</div>
+        <div class="wheel-surface" style="background: ${buildWheelBackground(state.items)};"></div>
+        <div class="wheel-center">${state.items.length > 0 ? "GO!" : "EMPTY"}</div>
     `;
 }
+
+// --- Actions ---
+
+export function addItem() {
+    const input = document.getElementById("new-item-label");
+    const label = input.value.trim();
+    if (!label) return;
+    
+    const color = COLORS[state.items.length % COLORS.length];
+    state.items.push({ label, color });
+    input.value = "";
+    
+    saveToCache();
+    renderItems();
+}
+
+export function removeItem(index) {
+    state.items.splice(index, 1);
+    saveToCache();
+    renderItems();
+}
+
+export function resetItems() {
+    if (confirm("項目を初期状態に戻しますか？")) {
+        state.items = [...DEFAULT_ITEMS];
+        saveToCache();
+        renderItems();
+    }
+}
+
+export function clearHistory() {
+    if (confirm("履歴を消去しますか？")) {
+        state.history = [];
+        saveToCache();
+        renderHistory();
+    }
+}
+
+function pickRandomItem() {
+    if (state.items.length === 0) return null;
+    
+    const selectedIndex = Math.floor(Math.random() * state.items.length);
+    const step = 360 / state.items.length;
+    const targetCenter = (selectedIndex * step) + (step / 2);
+    const jitter = (Math.random() * step * 0.5) - (step * 0.25);
+
+    return {
+        selected: state.items[selectedIndex],
+        degrees: 360 * (5 + Math.floor(Math.random() * 3)) + (360 - targetCenter) + jitter,
+    };
+}
+
+export function spin() {
+    if (state.spinning || state.items.length === 0) return;
+    
+    const wheel = document.getElementById("index-wheel");
+    const spinButton = document.getElementById("index-spin-button");
+    
+    state.spinning = true;
+    spinButton.disabled = true;
+    spinButton.textContent = "回転中...";
+
+    const result = pickRandomItem();
+    state.rotation += result.degrees;
+    wheel.style.transform = `rotate(${state.rotation}deg)`;
+
+    window.setTimeout(() => {
+        state.spinning = false;
+        spinButton.disabled = false;
+        spinButton.textContent = "ルーレットを回す";
+        
+        // Add to history
+        state.history.unshift({
+            ...result.selected,
+            timestamp: new Date().toISOString()
+        });
+        state.history = state.history.slice(0, 10);
+        
+        saveToCache();
+        renderHistory();
+        openResultModal(result.selected);
+    }, 4200);
+}
+
+// --- Modal Logic ---
 
 function ensureResultModal() {
     let modal = document.getElementById("result-modal");
@@ -63,15 +186,12 @@ function ensureResultModal() {
         <div class="result-modal-backdrop" data-close-modal></div>
         <div class="result-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
             <button class="result-modal-close" type="button" aria-label="閉じる" data-close-modal>×</button>
-            <p class="result-label">選ばれたテーマ</p>
-            <h2 id="result-modal-title"></h2>
-            <p id="result-modal-description"></p>
+            <p class="result-label">選ばれたのは...</p>
+            <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
         </div>
     `;
     modal.addEventListener("click", (event) => {
-        if (event.target.closest("[data-close-modal]")) {
-            closeResultModal();
-        }
+        if (event.target.closest("[data-close-modal]")) closeResultModal();
     });
     document.body.appendChild(modal);
     return modal;
@@ -80,7 +200,6 @@ function ensureResultModal() {
 function openResultModal(selected) {
     const modal = ensureResultModal();
     modal.querySelector("#result-modal-title").textContent = selected.label;
-    modal.querySelector("#result-modal-description").textContent = selected.description;
     modal.classList.add("is-open");
     document.body.classList.add("modal-open");
 }
@@ -92,104 +211,34 @@ function closeResultModal() {
     document.body.classList.remove("modal-open");
 }
 
-async function renderRoulette() {
-    view().innerHTML = `
-        <div class="roulette-layout">
-            <section>
-                <div class="wheel-stage">
-                    <div class="pointer" aria-hidden="true"></div>
-                    <div class="wheel" id="wheel"></div>
-                </div>
-                <div class="action-row">
-                    <button class="btn primary" id="spin-button" disabled>読み込み中...</button>
-                </div>
-            </section>
-            <aside class="side-panel">
-                <div class="legend-card">
-                    <p class="legend-title">候補一覧</p>
-                    <div class="legend-list"></div>
-                </div>
-            </aside>
-        </div>
-    `;
+// --- Init ---
 
-    try {
-        const config = await fetchRoulette();
-        state.config = config;
-
-        renderRouletteShell(config);
-
-        document.querySelector(".legend-list").innerHTML = config.items.map((item) => `
-            <div class="legend-item">
-                <span class="legend-color" style="background:${item.color};"></span>
-                <span class="legend-text">${item.label}</span>
-            </div>
-        `).join("");
-
-        const spinButton = document.getElementById("spin-button");
-        spinButton.textContent = config.spinText;
-        spinButton.disabled = false;
-        spinButton.addEventListener("click", onSpin);
-    } catch (error) {
-        view().innerHTML = `
-            <h1>ルーレット</h1>
-            <div class="result-card error-card">
-                <p>設定の取得に失敗しました。</p>
-                <p>${error.message}</p>
-            </div>
-        `;
+function init() {
+    loadFromCache();
+    renderItems();
+    renderHistory();
+    
+    const addButton = document.getElementById("add-item-button");
+    if (addButton) addButton.onclick = addItem;
+    
+    const input = document.getElementById("new-item-label");
+    if (input) {
+        input.onkeypress = (e) => {
+            if (e.key === "Enter") addItem();
+        };
     }
-}
 
-async function onSpin() {
-    if (state.spinning) return;
-    state.spinning = true;
-
-    const button = document.getElementById("spin-button");
-    const wheel = document.getElementById("wheel");
-    closeResultModal();
-
-    button.disabled = true;
-    button.textContent = "回転中...";
-
-    try {
-        const result = await spinRoulette();
-        state.rotation += result.degrees;
-        wheel.style.transform = `rotate(${state.rotation}deg)`;
-
-        window.setTimeout(() => {
-            openResultModal(result.selected);
-        }, 4200);
-    } catch (error) {
-        view().insertAdjacentHTML("beforeend", `
-            <div class="inline-error-card">
-                <p class="result-label">エラー</p>
-                <h2>抽選に失敗しました</h2>
-                <p>${error.message}</p>
-            </div>
-        `);
-    } finally {
-        window.setTimeout(() => {
-            state.spinning = false;
-            button.disabled = false;
-            button.textContent = state.config?.spinText || "もう一度回す";
-        }, 4300);
-    }
-}
-
-function boot() {
-    const year = document.getElementById("y");
-    if (year) year.textContent = new Date().getFullYear();
+    const spinButton = document.getElementById("index-spin-button");
+    if (spinButton) spinButton.onclick = spin;
+    
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-            closeResultModal();
-        }
+        if (event.key === "Escape") closeResultModal();
     });
-    if (location.pathname !== "/") {
-        navigate("/");
-        return;
-    }
-    renderRoulette();
 }
 
-document.addEventListener("DOMContentLoaded", boot);
+// すぐに実行（moduleなのでDOM構築を待つ必要はないが、一応DOMContentLoadedも考慮）
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+} else {
+    init();
+}

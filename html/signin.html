@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>新規登録 | Roulette</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="admin-body">
+    <div class="admin-layout" style="justify-content: center; align-items: center;">
+        <main class="content-body" style="padding: 20px;">
+            <div id="admin-status" class="admin-notice">設定を確認しています...</div>
+
+            <section class="admin-card auth-card">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 8px;">Create Account</h1>
+                </div>
+                <form id="signin-form" class="admin-form">
+                    <label class="admin-field">
+                        <span>メールアドレス</span>
+                        <input id="email" type="email" placeholder="name@example.com" required />
+                    </label>
+                    <label class="admin-field">
+                        <span>パスワード</span>
+                        <input id="password" type="password" placeholder="••••••••" required />
+                    </label>
+                    <div style="margin-top: 8px;">
+                        <button id="signin-button" class="btn primary" style="width: 100%;" type="submit">アカウント作成</button>
+                    </div>
+                    <p id="auth-helper" class="auth-helper" style="text-align: center; margin-top: 20px; font-size: 0.85rem;">
+                        すでにアカウントをお持ちですか？ <a href="/login">ログイン</a>
+                    </p>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="/js/signin.js"></script>
+</body>
+
+</html>
