@@ -2,14 +2,15 @@ package database
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
 	"gorm.io/gorm"
+
+	"presentation-roulette/migrations"
 )
 
 type SchemaMigration struct {
@@ -23,8 +24,8 @@ func Migrate(db *gorm.DB) error {
 		return fmt.Errorf("failed to create migration table: %w", err)
 	}
 
-	// Read migration files
-	files, err := os.ReadDir("migrations")
+	// Read migration files from embedded FS
+	files, err := fs.ReadDir(migrations.FS, ".")
 	if err != nil {
 		return fmt.Errorf("failed to read migrations directory: %w", err)
 	}
@@ -50,7 +51,7 @@ func Migrate(db *gorm.DB) error {
 		}
 
 		log.Printf("Applying migration: %s", filename)
-		content, err := os.ReadFile(filepath.Join("migrations", filename))
+		content, err := fs.ReadFile(migrations.FS, filename)
 		if err != nil {
 			return fmt.Errorf("failed to read migration file %s: %w", filename, err)
 		}
