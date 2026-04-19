@@ -26,6 +26,15 @@ type AdminHandler struct {
 	unavailableReason string
 }
 
+func sessionOptions(maxAge int) *sessions.Options {
+	return &sessions.Options{
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   maxAge,
+		SameSite: http.SameSiteLaxMode,
+	}
+}
+
 func NewAdminHandler(usecase *usecase.AdminUsecase, clientConfig FirebaseClientConfig) *AdminHandler {
 	return &AdminHandler{
 		usecase:      usecase,
@@ -66,12 +75,7 @@ func (h *AdminHandler) Login(c echo.Context) error {
 
 	sess, _ := session.Get("session", c)
 	sess.Values["uid"] = user.UID
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   86400 * 7,
-		SameSite: http.SameSiteLaxMode,
-	}
+	sess.Options = sessionOptions(86400 * 7)
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました: "+err.Error())
 	}
@@ -82,12 +86,7 @@ func (h *AdminHandler) Login(c echo.Context) error {
 func (h *AdminHandler) Logout(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	delete(sess.Values, "uid")
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   -1,
-		SameSite: http.SameSiteLaxMode,
-	}
+	sess.Options = sessionOptions(-1)
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "ログアウトに失敗しました")
 	}
@@ -106,7 +105,10 @@ func (h *AdminHandler) SyncUser(c echo.Context) error {
 
 	sess, _ := session.Get("session", c)
 	sess.Values["uid"] = user.UID
-	sess.Save(c.Request(), c.Response())
+	sess.Options = sessionOptions(86400 * 7)
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました: "+err.Error())
+	}
 
 	return c.JSON(http.StatusOK, user)
 }
