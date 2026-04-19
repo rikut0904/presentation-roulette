@@ -162,8 +162,11 @@ async function loadSelectionList(auth) {
     }
 }
 
-async function loadRouletteByID(id) {
-    const res = await fetch(`/api/dashboard/roulettes/${id}`);
+async function loadRouletteByID(auth, id) {
+    const idToken = await auth.currentUser.getIdToken();
+    const res = await fetch(`/api/dashboard/roulettes/${id}`, {
+        headers: { "Authorization": `Bearer ${idToken}` }
+    });
     if (!res.ok) throw new Error("ルーレットが見つかりませんでした");
     state.config = await res.json();
     
@@ -194,7 +197,7 @@ async function setupFirebase() {
                     viewSelection.style.display = "none";
                     viewPlay.style.display = "block";
                     try {
-                        await loadRouletteByID(id);
+                        await loadRouletteByID(auth, id);
                     } catch (err) {
                         setStatus(err.message, "error");
                     }

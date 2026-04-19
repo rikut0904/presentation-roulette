@@ -51,9 +51,9 @@ func (r *PostgresRouletteRepository) ListByUser(ctx context.Context, userUID str
 	return result, nil
 }
 
-func (r *PostgresRouletteRepository) GetByID(ctx context.Context, id string) (entity.Roulette, error) {
+func (r *PostgresRouletteRepository) GetByID(ctx context.Context, id string, userUID string) (entity.Roulette, error) {
 	var m rouletteModel
-	if err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&m, "id = ? AND user_uid = ?", id, userUID).Error; err != nil {
 		return entity.Roulette{}, err
 	}
 	return m.toEntity()

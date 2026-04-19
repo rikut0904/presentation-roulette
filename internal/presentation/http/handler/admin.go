@@ -109,9 +109,9 @@ func (h *AdminHandler) GetRoulette(ctx echo.Context) error {
 	}
 
 	id := ctx.Param("id")
-	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), id)
+	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found")
+		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found or unauthorized")
 	}
 	return ctx.JSON(http.StatusOK, roulette)
 }
