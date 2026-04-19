@@ -110,17 +110,37 @@ export function closeRouletteModal() {
 export function addItemToModal(label = "", color = null) {
     const div = document.createElement("div");
     div.className = "modal-item-row";
-    div.style = "display: flex; gap: 8px; align-items: center;";
+    div.style = "display: flex; gap: 8px; align-items: center; margin-bottom: 8px;";
     
     if (!color) {
         color = COLORS[modalItemList.children.length % COLORS.length];
     }
 
-    div.innerHTML = `
-        <input type="color" class="item-color" value="${color}" style="width: 40px; height: 40px; padding: 2px; border: 1px solid var(--glass-border); border-radius: 8px; cursor: pointer;">
-        <input type="text" class="item-label" value="${label}" placeholder="項目名" style="flex: 1; border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px 12px;" required>
-        <button type="button" onclick="removeItemFromModal(this)" style="background: none; border: none; color: #ef476f; font-size: 1.2rem; cursor: pointer; padding: 0 8px;">&times;</button>
-    `;
+    const colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.className = "item-color";
+    colorInput.value = color;
+    colorInput.style = "width: 40px; height: 40px; padding: 2px; border: 1px solid var(--glass-border); border-radius: 8px; cursor: pointer;";
+
+    const labelInput = document.createElement("input");
+    labelInput.type = "text";
+    labelInput.className = "item-label";
+    labelInput.value = label;
+    labelInput.placeholder = "項目名";
+    labelInput.style = "flex: 1; border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px 12px;";
+    labelInput.required = true;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.innerHTML = "&times;";
+    removeBtn.style = "background: none; border: none; color: #ef476f; font-size: 1.2rem; cursor: pointer; padding: 0 8px;";
+    removeBtn.onclick = function() {
+        div.remove();
+    };
+
+    div.appendChild(colorInput);
+    div.appendChild(labelInput);
+    div.appendChild(removeBtn);
     modalItemList.appendChild(div);
 }
 
