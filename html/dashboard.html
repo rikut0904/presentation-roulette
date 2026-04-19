@@ -15,7 +15,7 @@
             <div class="wrap">
                 <div class="nav-group">
                     <a href="/dashboard" class="nav-link active">Dashboard</a>
-                    <a href="/roulette" class="nav-link">roulette</a>
+                    <a href="/roulette" class="nav-link">Roulette</a>
                 </div>
                 <div class="nav-group">
                     <button id="logout-button" class="btn"
@@ -31,14 +31,68 @@
 
                 <h1 style="margin-bottom: 8px;">Dashboard</h1>
 
-                <div class="admin-grid">
-
+                <div class="admin-grid" style="grid-template-columns: 1fr;">
+                    <section class="glass-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <h2 style="font-size: 1.25rem; margin: 0;">保存済みルーレット</h2>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="reload-users" class="btn" style="padding: 8px 16px; font-size: 0.85rem;"
+                                    type="button">更新</button>
+                                <button onclick="openCreateModal()" class="btn primary"
+                                    style="padding: 8px 16px; font-size: 0.85rem;">新規作成</button>
+                            </div>
+                        </div>
+                        <div id="users-empty" class="admin-empty">ルーレットはまだありません。</div>
+                        <div id="users-list" class="admin-user-list"></div>
+                    </section>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- Create/Edit Modal -->
+    <div id="roulette-modal" class="result-modal">
+        <div class="result-modal-backdrop" onclick="closeRouletteModal()"></div>
+        <div class="result-modal-dialog" style="max-width: 600px; padding: 40px;">
+            <h2 id="modal-title" style="margin-bottom: 24px; border: none;">ルーレットの作成</h2>
+            <form id="roulette-form" class="admin-form">
+                <input type="hidden" id="edit-id">
+                <label class="admin-field">
+                    <span>タイトル</span>
+                    <input type="text" id="modal-roulette-title" placeholder="例: 週末のランチ" required>
+                </label>
+                <label class="admin-field">
+                    <span>説明 (任意)</span>
+                    <input type="text" id="modal-roulette-desc" placeholder="どこに行くか迷った時に">
+                </label>
+
+                <div style="margin-top: 16px;">
+                    <span
+                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">項目設定</span>
+                    <div id="modal-item-list" style="display: grid; gap: 8px; margin-bottom: 12px;">
+                        <!-- Items dynamically added here -->
+                    </div>
+                    <button type="button" onclick="addItemToModal()" class="btn"
+                        style="width: 100%; border-style: dashed;">+ 項目を追加</button>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 32px;">
+                    <button type="button" onclick="closeRouletteModal()" class="btn" style="flex: 1;">キャンセル</button>
+                    <button type="submit" class="btn primary" style="flex: 1;">保存する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module" src="/js/dashboard.js"></script>
+    <script type="module">
+        import { openCreateModal, closeRouletteModal, addItemToModal, removeItemFromModal } from '/js/dashboard.js';
+        window.openCreateModal = openCreateModal;
+        window.closeRouletteModal = closeRouletteModal;
+        window.addItemToModal = addItemToModal;
+        window.removeItemFromModal = removeItemFromModal;
+    </script>
 </body>
 
 </html>

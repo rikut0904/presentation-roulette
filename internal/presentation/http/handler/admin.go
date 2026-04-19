@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -84,8 +83,8 @@ func (h *AdminHandler) SaveRoulette(c echo.Context) error {
 }
 
 func (h *AdminHandler) DeleteRoulette(ctx echo.Context) error {
-	id, _ := strconv.Atoi(ctx.Param("id"))
-	err := h.usecase.DeleteRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), uint(id))
+	id := ctx.Param("id")
+	err := h.usecase.DeleteRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
@@ -93,8 +92,8 @@ func (h *AdminHandler) DeleteRoulette(ctx echo.Context) error {
 }
 
 func (h *AdminHandler) GetRoulette(ctx echo.Context) error {
-	id, _ := strconv.Atoi(ctx.Param("id"))
-	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), uint(id))
+	id := ctx.Param("id")
+	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found")
 	}

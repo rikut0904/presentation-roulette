@@ -29,9 +29,6 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	e.GET("/signin", func(c echo.Context) error {
 		return c.File("html/signin.html")
 	})
-	e.GET("/logout", func(c echo.Context) error {
-		return c.File("html/login.html")
-	})
 
 	e.GET("/api/config/firebase", adminHandler.GetFirebaseConfig)
 	e.POST("/api/dashboard/session", adminHandler.SyncUser)

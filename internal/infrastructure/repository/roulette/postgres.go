@@ -4,14 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"presentation-roulette/internal/domain/entity"
 )
 
 type rouletteModel struct {
-	gorm.Model
-	UserUID     string `gorm:"index"`
+	ID          string `gorm:"primaryKey"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
+	UserUID     string         `gorm:"index"`
 	Title       string
 	Description string
 	Items       string `gorm:"type:jsonb"`
@@ -42,9 +47,9 @@ func (r *PostgresRouletteRepository) ListByUser(ctx context.Context, userUID str
 	return result, nil
 }
 
-func (r *PostgresRouletteRepository) GetByID(ctx context.Context, id uint) (entity.Roulette, error) {
+func (r *PostgresRouletteRepository) GetByID(ctx context.Context, id string) (entity.Roulette, error) {
 	var m rouletteModel
-	if err := r.db.WithContext(ctx).First(&m, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error; err != nil {
 		return entity.Roulette{}, err
 	}
 	return m.toEntity(), nil
@@ -56,13 +61,17 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 		return entity.Roulette{}, fmt.Errorf("failed to marshal items: %w", err)
 	}
 
+	if roulette.ID == "" || roulette.ID == "0" {
+		roulette.ID = uuid.New().String()
+	}
+
 	model := rouletteModel{
+		ID:          roulette.ID,
 		UserUID:     roulette.UserUID,
 		Title:       roulette.Title,
 		Description: roulette.Description,
 		Items:       string(itemsJSON),
 	}
-	model.ID = roulette.ID
 
 	if err := r.db.WithContext(ctx).Save(&model).Error; err != nil {
 		return entity.Roulette{}, err
@@ -71,7 +80,7 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 	return model.toEntity(), nil
 }
 
-func (r *PostgresRouletteRepository) Delete(ctx context.Context, id uint, userUID string) error {
+func (r *PostgresRouletteRepository) Delete(ctx context.Context, id string, userUID string) error {
 	return r.db.WithContext(ctx).Where("id = ? AND user_uid = ?", id, userUID).Delete(&rouletteModel{}).Error
 }
 

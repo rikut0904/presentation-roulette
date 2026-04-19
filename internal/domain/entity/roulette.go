@@ -9,7 +9,7 @@ type RouletteItem struct {
 }
 
 type Roulette struct {
-	ID          uint           `json:"id"`
+	ID          string         `json:"id"`
 	UserUID     string         `json:"userUid"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
