@@ -263,6 +263,9 @@ function init() {
     
     const addButton = document.getElementById("add-item-button");
     if (addButton) addButton.onclick = addItem;
+
+    const resetButton = document.getElementById("reset-items-button");
+    if (resetButton) resetButton.onclick = resetItems;
     
     const input = document.getElementById("new-item-label");
     if (input) {
