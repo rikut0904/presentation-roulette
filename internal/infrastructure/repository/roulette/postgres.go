@@ -107,7 +107,7 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 	}
 
 	// Fetch the updated record to get the latest timestamps
-	if err := r.db.WithContext(ctx).First(&model, "id = ?", model.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&model, "id = ? AND user_uid = ?", model.ID, model.UserUID).Error; err != nil {
 		return entity.Roulette{}, err
 	}
 
