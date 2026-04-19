@@ -49,6 +49,7 @@ func (r *PostgresUserRepository) Upsert(ctx context.Context, user entity.User) (
 			"provider":       model.Provider,
 			"email_verified": model.EmailVerified,
 			"last_login_at":  model.LastLoginAt,
+			"updated_at":     time.Now(),
 		}),
 	}).Create(&model).Error; err != nil {
 		return entity.User{}, err
