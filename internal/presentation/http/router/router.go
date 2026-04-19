@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -54,7 +55,7 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 		}
 	}
 
-	if code == http.StatusNotFound {
+	if code == http.StatusNotFound && !strings.HasPrefix(c.Request().URL.Path, "/api/") {
 		_ = c.File("html/404.html")
 		return
 	}
