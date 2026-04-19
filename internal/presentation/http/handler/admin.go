@@ -147,7 +147,7 @@ func (h *AdminHandler) GetRoulette(c echo.Context) error {
 	id := c.Param("id")
 	roulette, err := h.usecase.GetRoulette(c.Request().Context(), userUID, id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found or unauthorized")
+		return echo.NewHTTPError(http.StatusNotFound, "ルーレットが見つかりませんでした")
 	}
 	return c.JSON(http.StatusOK, roulette)
 }
