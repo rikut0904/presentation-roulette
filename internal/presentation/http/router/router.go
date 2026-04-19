@@ -33,7 +33,7 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	e.GET("/api/config/firebase", adminHandler.GetFirebaseConfig)
 	e.POST("/api/dashboard/session", adminHandler.SyncUser)
 	e.GET("/api/dashboard/roulettes", adminHandler.ListRoulettes)
-	e.GET("/api/roulettes/:id", adminHandler.GetRoulette)
+	e.GET("/api/dashboard/roulettes/:id", adminHandler.GetRoulette)
 	e.POST("/api/dashboard/roulettes", adminHandler.SaveRoulette)
 	e.DELETE("/api/dashboard/roulettes/:id", adminHandler.DeleteRoulette)
 }
