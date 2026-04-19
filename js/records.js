@@ -6,10 +6,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 const statusElement = document.getElementById("admin-status");
-const recordsList = document.getElementById("records-list");
-const recordsEmpty = document.getElementById("records-empty");
+const rouletteList = document.getElementById("roulette-list");
+const rouletteEmpty = document.getElementById("roulette-empty");
 const logoutButton = document.getElementById("logout-button");
-const clearRecordsButton = document.getElementById("clear-records");
+const clearrouletteButton = document.getElementById("clear-roulette");
 
 function setStatus(msg, type = "info") {
     statusElement.textContent = msg;
@@ -22,13 +22,13 @@ async function fetchFirebaseConfig() {
     return await res.json();
 }
 
-function loadRecords() {
+function loadroulette() {
     const savedHistory = localStorage.getItem("roulette-history");
     const history = savedHistory ? JSON.parse(savedHistory) : [];
 
     if (history && history.length > 0) {
-        recordsEmpty.style.display = "none";
-        recordsList.innerHTML = history.map(item => `
+        rouletteEmpty.style.display = "none";
+        rouletteList.innerHTML = history.map(item => `
             <div class="admin-user-item">
                 <div class="admin-user-summary">
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -42,8 +42,8 @@ function loadRecords() {
             </div>
         `).join("");
     } else {
-        recordsEmpty.style.display = "block";
-        recordsList.innerHTML = "";
+        rouletteEmpty.style.display = "block";
+        rouletteList.innerHTML = "";
     }
 }
 
@@ -60,7 +60,7 @@ async function setupFirebase() {
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 setStatus("ログイン中: " + user.email);
-                loadRecords();
+                loadroulette();
             } else {
                 window.location.href = "/login";
             }
@@ -71,10 +71,10 @@ async function setupFirebase() {
             window.location.href = "/login";
         };
 
-        clearRecordsButton.onclick = () => {
+        clearrouletteButton.onclick = () => {
             if (confirm("すべての履歴を消去しますか？")) {
                 localStorage.removeItem("roulette-history");
-                loadRecords();
+                loadroulette();
             }
         };
 

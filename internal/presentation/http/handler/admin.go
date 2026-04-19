@@ -83,13 +83,22 @@ func (h *AdminHandler) SaveRoulette(c echo.Context) error {
 	return c.JSON(http.StatusOK, saved)
 }
 
-func (h *AdminHandler) DeleteRoulette(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
-	err := h.usecase.DeleteRoulette(c.Request().Context(), bearerToken(c.Request().Header.Get("Authorization")), uint(id))
+func (h *AdminHandler) DeleteRoulette(ctx echo.Context) error {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	err := h.usecase.DeleteRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), uint(id))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
-	return c.NoContent(http.StatusNoContent)
+	return ctx.NoContent(http.StatusNoContent)
+}
+
+func (h *AdminHandler) GetRoulette(ctx echo.Context) error {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), uint(id))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found")
+	}
+	return ctx.JSON(http.StatusOK, roulette)
 }
 
 func bearerToken(header string) string {

@@ -67,3 +67,9 @@ func (u *AdminUsecase) DeleteRoulette(ctx context.Context, idToken string, id ui
 
 	return u.rouletteRepo.Delete(ctx, id, claims.UID)
 }
+
+func (u *AdminUsecase) GetRoulette(ctx context.Context, id uint) (entity.Roulette, error) {
+	// For now, making it public for simplicity if ID is known, 
+	// or you could add owner check by passing token
+	return u.rouletteRepo.GetByID(ctx, id)
+}

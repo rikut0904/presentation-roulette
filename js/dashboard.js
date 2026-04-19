@@ -58,6 +58,7 @@ async function loadRoulettes(auth) {
                 </div>
                 <div class="admin-user-meta">
                     <div style="display: flex; gap: 8px;">
+                        <button onclick="playRoulette(${r.id})" class="btn primary" style="padding: 4px 12px; font-size: 0.8rem;">Play</button>
                         <button onclick="editRoulette(${r.id})" class="btn" style="padding: 4px 12px; font-size: 0.8rem;">編集</button>
                         <button onclick="deleteRoulette(${r.id})" class="btn" style="padding: 4px 12px; font-size: 0.8rem; color: #ef476f;">削除</button>
                     </div>
@@ -125,6 +126,10 @@ async function setupFirebase() {
             } else {
                 alert("削除に失敗しました");
             }
+        };
+
+        window.playRoulette = (id) => {
+            window.location.href = `/roulette?id=${id}`;
         };
 
         window.editRoulette = (id) => {

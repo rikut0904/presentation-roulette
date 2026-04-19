@@ -20,8 +20,8 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	e.GET("/dashboard", func(c echo.Context) error {
 		return c.File("html/dashboard.html")
 	})
-	e.GET("/records", func(c echo.Context) error {
-		return c.File("html/records.html")
+	e.GET("/roulette", func(c echo.Context) error {
+		return c.File("html/roulette.html")
 	})
 	e.GET("/login", func(c echo.Context) error {
 		return c.File("html/login.html")
@@ -36,6 +36,7 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	e.GET("/api/config/firebase", adminHandler.GetFirebaseConfig)
 	e.POST("/api/dashboard/session", adminHandler.SyncUser)
 	e.GET("/api/dashboard/roulettes", adminHandler.ListRoulettes)
+	e.GET("/api/roulettes/:id", adminHandler.GetRoulette)
 	e.POST("/api/dashboard/roulettes", adminHandler.SaveRoulette)
 	e.DELETE("/api/dashboard/roulettes/:id", adminHandler.DeleteRoulette)
 }
