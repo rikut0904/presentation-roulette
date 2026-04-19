@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 
 	"presentation-roulette/internal/domain/entity"
@@ -40,12 +41,38 @@ func NewUnavailableAdminHandler(clientConfig FirebaseClientConfig, reason string
 	}
 }
 
-func (h *AdminHandler) GetFirebaseConfig(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]any{
-		"enabled": h.available,
-		"reason":  h.unavailableReason,
-		"config":  h.clientConfig,
-	})
+func (h *AdminHandler) Login(c echo.Context) error {
+	type LoginRequest struct {
+		IDToken string `json:"idToken"`
+	}
+	var req LoginRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	user, err := h.usecase.SyncUser(c.Request().Context(), req.IDToken)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
+	}
+
+	sess, _ := session.Get("session", c)
+	sess.Values["user"] = user
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   86400 * 7,
+	}
+	sess.Save(c.Request(), c.Response())
+
+	return c.JSON(http.StatusOK, user)
+}
+
+func (h *AdminHandler) Logout(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	sess.Values["user"] = nil
+	sess.Options.MaxAge = -1
+	sess.Save(c.Request(), c.Response())
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *AdminHandler) SyncUser(c echo.Context) error {
@@ -57,6 +84,10 @@ func (h *AdminHandler) SyncUser(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
+
+	sess, _ := session.Get("session", c)
+	sess.Values["user"] = user
+	sess.Save(c.Request(), c.Response())
 
 	return c.JSON(http.StatusOK, user)
 }

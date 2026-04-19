@@ -3,22 +3,25 @@ package app
 import (
 	"fmt"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 
 	"presentation-roulette/internal/infrastructure/auth"
 	"presentation-roulette/internal/infrastructure/config"
 	"presentation-roulette/internal/infrastructure/database"
-	userinfra "presentation-roulette/internal/infrastructure/repository/user"
 	rouletteinfra "presentation-roulette/internal/infrastructure/repository/roulette"
+	userinfra "presentation-roulette/internal/infrastructure/repository/user"
 	"presentation-roulette/internal/presentation/http/handler"
 	"presentation-roulette/internal/presentation/http/router"
 	"presentation-roulette/internal/usecase"
-	)
+)
 
-	func Run() error {
+func Run() error {
 	cfg := config.Load()
 
 	e := echo.New()
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cfg.SessionSecret))))
 
 	adminHandler, adminErr := buildAdminHandler(cfg)
 
@@ -29,7 +32,7 @@ import (
 	}
 
 	return e.Start(cfg.ServerAddr)
-	}
+}
 
 	func buildAdminHandler(cfg config.Config) (*handler.AdminHandler, error) {
 	clientConfig := handler.FirebaseClientConfig{

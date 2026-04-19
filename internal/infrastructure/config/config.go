@@ -16,6 +16,7 @@ type Config struct {
 	FirebaseServiceAccountKey  string
 	FirebaseServiceAccountPath string
 	AutoMigrate                bool
+	SessionSecret              string
 }
 
 func Load() Config {
@@ -31,6 +32,7 @@ func Load() Config {
 		FirebaseServiceAccountKey:  os.Getenv("FIREBASE_SERVICE_ACCOUNT_KEY"),
 		FirebaseServiceAccountPath: os.Getenv("FIREBASE_SERVICE_ACCOUNT_PATH"),
 		AutoMigrate:                os.Getenv("AUTO_MIGRATE") == "true",
+		SessionSecret:              os.Getenv("SESSION_SECRET"),
 	}
 }
 

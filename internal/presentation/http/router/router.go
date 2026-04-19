@@ -31,6 +31,8 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	})
 
 	e.GET("/api/config/firebase", adminHandler.GetFirebaseConfig)
+	e.POST("/api/auth/login", adminHandler.Login)
+	e.POST("/api/auth/logout", adminHandler.Logout)
 	e.POST("/api/dashboard/session", adminHandler.SyncUser)
 	e.GET("/api/dashboard/roulettes", adminHandler.ListRoulettes)
 	e.GET("/api/dashboard/roulettes/:id", adminHandler.GetRoulette)
