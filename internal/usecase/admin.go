@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 	"presentation-roulette/internal/domain/entity"
 	"presentation-roulette/internal/domain/repository"
 	"presentation-roulette/internal/domain/service"
@@ -35,6 +36,7 @@ func (u *AdminUsecase) SyncUser(ctx context.Context, idToken string) (entity.Use
 		PhotoURL:      claims.PhotoURL,
 		Provider:      claims.Provider,
 		EmailVerified: claims.EmailVerified,
+		LastLoginAt:   time.Now(),
 	}
 
 	return u.userRepo.Upsert(ctx, user)
