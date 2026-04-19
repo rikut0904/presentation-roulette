@@ -54,10 +54,6 @@ func (r *PostgresUserRepository) Upsert(ctx context.Context, user entity.User) (
 		return entity.User{}, err
 	}
 
-	if err := r.db.WithContext(ctx).Where("uid = ?", user.UID).First(&model).Error; err != nil {
-		return entity.User{}, err
-	}
-
 	return toEntity(model), nil
 }
 
