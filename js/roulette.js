@@ -25,6 +25,9 @@ function setStatus(msg, type = "info") {
 
 async function fetchFirebaseConfig() {
     const res = await fetch("/api/config/firebase", { cache: "no-store" });
+    if (!res.ok) {
+        throw new Error(`Failed to fetch Firebase config (${res.status})`);
+    }
     return await res.json();
 }
 
