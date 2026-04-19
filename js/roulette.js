@@ -48,22 +48,38 @@ function buildWheelBackground(items) {
 function renderPlayView() {
     const itemList = document.getElementById("item-list");
     const wheel = document.getElementById("index-wheel");
-    
+
     if (!itemList || !wheel || !state.config) return;
 
-    itemList.innerHTML = state.config.items.map(item => `
-        <div class="legend-item">
-            <span class="legend-color" style="background: ${item.color};"></span>
-            <span>${item.label}</span>
-        </div>
-    `).join("");
+    itemList.innerHTML = "";
+    state.config.items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "legend-item";
 
-    wheel.innerHTML = `
-        <div class="wheel-surface" style="background: ${buildWheelBackground(state.config.items)};"></div>
-        <div class="wheel-center">GO!</div>
-    `;
+        const colorSpan = document.createElement("span");
+        colorSpan.className = "legend-color";
+        colorSpan.style.background = item.color;
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = item.label;
+
+        div.appendChild(colorSpan);
+        div.appendChild(labelSpan);
+        itemList.appendChild(div);
+    });
+
+    wheel.innerHTML = "";
+    const surface = document.createElement("div");
+    surface.className = "wheel-surface";
+    surface.style.background = buildWheelBackground(state.config.items);
+
+    const center = document.createElement("div");
+    center.className = "wheel-center";
+    center.textContent = "GO!";
+
+    wheel.appendChild(surface);
+    wheel.appendChild(center);
 }
-
 export function spin() {
     if (state.spinning || !state.config || state.config.items.length === 0) return;
     

@@ -47,17 +47,35 @@ function buildWheelBackground(items) {
 export function renderItems() {
     const container = document.getElementById("item-list");
     if (!container) return;
-    
-    container.innerHTML = state.items.map((item, index) => `
-        <div class="legend-item">
-            <span class="legend-color" style="background: ${item.color};"></span>
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                <span>${item.label}</span>
-                <button onclick="removeItem(${index})" style="background: none; border: none; color: #ef476f; cursor: pointer; font-size: 1.2rem; padding: 0 8px;">&times;</button>
-            </div>
-        </div>
-    `).join("");
-    
+
+    container.innerHTML = "";
+    state.items.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "legend-item";
+
+        const colorSpan = document.createElement("span");
+        colorSpan.className = "legend-color";
+        colorSpan.style.background = item.color;
+
+        const contentDiv = document.createElement("div");
+        contentDiv.style = "display: flex; justify-content: space-between; width: 100%; align-items: center;";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = item.label;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.innerHTML = "&times;";
+        removeBtn.style = "background: none; border: none; color: #ef476f; cursor: pointer; font-size: 1.2rem; padding: 0 8px;";
+        removeBtn.onclick = () => window.removeItem(index);
+
+        contentDiv.appendChild(labelSpan);
+        contentDiv.appendChild(removeBtn);
+        div.appendChild(colorSpan);
+        div.appendChild(contentDiv);
+        container.appendChild(div);
+    });
+
     renderWheel();
 }
 
@@ -69,27 +87,52 @@ export function renderHistory() {
         container.innerHTML = `<p style="color: var(--muted); padding: 20px; text-align: center;">履歴はありません</p>`;
         return;
     }
-    
-    container.innerHTML = state.history.map(item => `
-        <article class="intro-roulette-card">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="intro-color-dot" style="background: ${item.color};"></span>
-                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">${item.label}</h3>
-            </div>
-            <small style="color: var(--text-muted); font-weight: 500;">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-        </article>
-    `).join("");
+
+    container.innerHTML = "";
+    state.history.forEach(item => {
+        const article = document.createElement("article");
+        article.className = "intro-roulette-card";
+
+        const leftDiv = document.createElement("div");
+        leftDiv.style = "display: flex; align-items: center; gap: 12px;";
+
+        const dot = document.createElement("span");
+        dot.className = "intro-color-dot";
+        dot.style.background = item.color;
+
+        const label = document.createElement("h3");
+        label.style = "margin: 0; font-size: 1.1rem; font-weight: 600;";
+        label.textContent = item.label;
+
+        leftDiv.appendChild(dot);
+        leftDiv.appendChild(label);
+
+        const time = document.createElement("small");
+        time.style = "color: var(--text-muted); font-weight: 500;";
+        time.textContent = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        article.appendChild(leftDiv);
+        article.appendChild(time);
+        container.appendChild(article);
+    });
 }
 
 function renderWheel() {
     const wheel = document.getElementById("index-wheel");
     if (!wheel) return;
-    wheel.innerHTML = `
-        <div class="wheel-surface" style="background: ${buildWheelBackground(state.items)};"></div>
-        <div class="wheel-center">${state.items.length > 0 ? "GO!" : "EMPTY"}</div>
-    `;
-}
 
+    wheel.innerHTML = "";
+    const surface = document.createElement("div");
+    surface.className = "wheel-surface";
+    surface.style.background = buildWheelBackground(state.items);
+
+    const center = document.createElement("div");
+    center.className = "wheel-center";
+    center.textContent = state.items.length > 0 ? "GO!" : "EMPTY";
+
+    wheel.appendChild(surface);
+    wheel.appendChild(center);
+}
 // --- Actions ---
 
 export function addItem() {
