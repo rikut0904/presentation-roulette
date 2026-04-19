@@ -163,7 +163,7 @@ async function loadSelectionList(auth) {
 }
 
 async function loadRouletteByID(id) {
-    const res = await fetch(`/api/roulettes/${id}`);
+    const res = await fetch(`/api/dashboard/roulettes/${id}`);
     if (!res.ok) throw new Error("ルーレットが見つかりませんでした");
     state.config = await res.json();
     
