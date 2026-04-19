@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -93,26 +92,6 @@ func (h *AdminHandler) Logout(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *AdminHandler) SyncUser(c echo.Context) error {
-	if !h.available {
-		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
-	}
-
-	user, err := h.usecase.SyncUser(c.Request().Context(), bearerToken(c.Request().Header.Get("Authorization")))
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
-	}
-
-	sess, _ := session.Get("session", c)
-	sess.Values["uid"] = user.UID
-	sess.Options = sessionOptions(86400 * 7)
-	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました: "+err.Error())
-	}
-
-	return c.JSON(http.StatusOK, user)
-}
-
 func (h *AdminHandler) ListRoulettes(c echo.Context) error {
 	if !h.available {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
@@ -180,8 +159,4 @@ func (h *AdminHandler) GetMe(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "ユーザー情報の取得に失敗しました")
 	}
 	return c.JSON(http.StatusOK, user)
-}
-
-func bearerToken(header string) string {
-	return strings.TrimSpace(strings.TrimPrefix(header, "Bearer "))
 }

@@ -37,7 +37,6 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	api := e.Group("/api/dashboard")
 	api.Use(AuthMiddleware)
 	api.GET("/me", adminHandler.GetMe)
-	api.POST("/session", adminHandler.SyncUser)
 	api.GET("/roulettes", adminHandler.ListRoulettes)
 	api.GET("/roulettes/:id", adminHandler.GetRoulette)
 	api.POST("/roulettes", adminHandler.SaveRoulette)
