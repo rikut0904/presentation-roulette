@@ -12,7 +12,16 @@ const APP_STORAGE_KEYS = [
 
 function readJSON(key) {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (_error) {
+        localStorage.removeItem(key);
+        return null;
+    }
 }
 
 export function getUser() {
