@@ -110,11 +110,15 @@ function openResultModal(selected) {
     }
     modal.querySelector("#result-modal-title").textContent = selected.label;
     modal.classList.add("is-open");
+    document.body.classList.add("modal-open");
 }
 
 window.closeResultModal = () => {
     const modal = document.getElementById("result-modal");
-    if (modal) modal.classList.remove("is-open");
+    if (modal) {
+        modal.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+    }
 };
 
 // --- Selection Logic ---

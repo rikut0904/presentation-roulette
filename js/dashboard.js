@@ -136,6 +136,7 @@ export function openCreateModal() {
     addItemToModal(); // Add one default item
     addItemToModal();
     rouletteModal.classList.add("is-open");
+    document.body.classList.add("modal-open");
 }
 
 window.openEditModal = (roulette) => {
@@ -148,10 +149,12 @@ window.openEditModal = (roulette) => {
         roulette.items.forEach(item => addItemToModal(item.label, item.color));
     }
     rouletteModal.classList.add("is-open");
+    document.body.classList.add("modal-open");
 };
 
 export function closeRouletteModal() {
     rouletteModal.classList.remove("is-open");
+    document.body.classList.remove("modal-open");
 }
 
 export function addItemToModal(label = "", color = null) {

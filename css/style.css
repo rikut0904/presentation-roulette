@@ -34,6 +34,10 @@ body {
     background-attachment: fixed;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 /* Common Layout Components */
 .wrap {
     width: min(1200px, calc(100vw - 40px));
