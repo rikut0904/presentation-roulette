@@ -66,25 +66,21 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 	}
 
 	if roulette.ID == "" || roulette.ID == "0" {
-		roulette.ID = uuid.New().String()
-	} else {
-		// Verify ownership before update
-		var count int64
-		if err := r.db.WithContext(ctx).Model(&rouletteModel{}).Where("id = ?", roulette.ID).Count(&count).Error; err != nil {
+		// New record
+		model := rouletteModel{
+			ID:          uuid.New().String(),
+			UserUID:     roulette.UserUID,
+			Title:       roulette.Title,
+			Description: roulette.Description,
+			Items:       string(itemsJSON),
+		}
+		if err := r.db.WithContext(ctx).Create(&model).Error; err != nil {
 			return entity.Roulette{}, err
 		}
-		if count > 0 {
-			// Record exists, check ownership
-			var existing rouletteModel
-			if err := r.db.WithContext(ctx).First(&existing, "id = ?", roulette.ID).Error; err != nil {
-				return entity.Roulette{}, err
-			}
-			if existing.UserUID != roulette.UserUID {
-				return entity.Roulette{}, fmt.Errorf("unauthorized: this roulette does not belong to you")
-			}
-		}
+		return model.toEntity()
 	}
 
+	// Update existing record with ownership check in the WHERE clause
 	model := rouletteModel{
 		ID:          roulette.ID,
 		UserUID:     roulette.UserUID,
@@ -93,7 +89,25 @@ func (r *PostgresRouletteRepository) Save(ctx context.Context, roulette entity.R
 		Items:       string(itemsJSON),
 	}
 
-	if err := r.db.WithContext(ctx).Save(&model).Error; err != nil {
+	result := r.db.WithContext(ctx).
+		Model(&rouletteModel{}).
+		Where("id = ? AND user_uid = ?", roulette.ID, roulette.UserUID).
+		Updates(map[string]interface{}{
+			"title":       model.Title,
+			"description": model.Description,
+			"items":       model.Items,
+		})
+
+	if result.Error != nil {
+		return entity.Roulette{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return entity.Roulette{}, fmt.Errorf("unauthorized or roulette not found")
+	}
+
+	// Fetch the updated record to get the latest timestamps
+	if err := r.db.WithContext(ctx).First(&model, "id = ?", model.ID).Error; err != nil {
 		return entity.Roulette{}, err
 	}
 
