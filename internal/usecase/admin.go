@@ -42,38 +42,18 @@ func (u *AdminUsecase) SyncUser(ctx context.Context, idToken string) (entity.Use
 	return u.userRepo.Upsert(ctx, user)
 }
 
-func (u *AdminUsecase) ListRoulettes(ctx context.Context, idToken string) ([]entity.Roulette, error) {
-	claims, err := u.verifier.VerifyIDToken(ctx, idToken)
-	if err != nil {
-		return nil, fmt.Errorf("unauthorized: %w", err)
-	}
-
-	return u.rouletteRepo.ListByUser(ctx, claims.UID)
+func (u *AdminUsecase) ListRoulettes(ctx context.Context, userUID string) ([]entity.Roulette, error) {
+	return u.rouletteRepo.ListByUser(ctx, userUID)
 }
 
-func (u *AdminUsecase) SaveRoulette(ctx context.Context, idToken string, roulette entity.Roulette) (entity.Roulette, error) {
-	claims, err := u.verifier.VerifyIDToken(ctx, idToken)
-	if err != nil {
-		return entity.Roulette{}, fmt.Errorf("unauthorized: %w", err)
-	}
-
-	roulette.UserUID = claims.UID
+func (u *AdminUsecase) SaveRoulette(ctx context.Context, roulette entity.Roulette) (entity.Roulette, error) {
 	return u.rouletteRepo.Save(ctx, roulette)
 }
 
-func (u *AdminUsecase) DeleteRoulette(ctx context.Context, idToken string, id string) error {
-	claims, err := u.verifier.VerifyIDToken(ctx, idToken)
-	if err != nil {
-		return fmt.Errorf("unauthorized: %w", err)
-	}
-
-	return u.rouletteRepo.Delete(ctx, id, claims.UID)
+func (u *AdminUsecase) DeleteRoulette(ctx context.Context, id string, userUID string) error {
+	return u.rouletteRepo.Delete(ctx, id, userUID)
 }
 
-func (u *AdminUsecase) GetRoulette(ctx context.Context, idToken string, id string) (entity.Roulette, error) {
-	claims, err := u.verifier.VerifyIDToken(ctx, idToken)
-	if err != nil {
-		return entity.Roulette{}, fmt.Errorf("unauthorized: %w", err)
-	}
-	return u.rouletteRepo.GetByID(ctx, id, claims.UID)
+func (u *AdminUsecase) GetRoulette(ctx context.Context, userUID string, id string) (entity.Roulette, error) {
+	return u.rouletteRepo.GetByID(ctx, id, userUID)
 }

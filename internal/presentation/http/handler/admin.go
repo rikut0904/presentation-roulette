@@ -106,7 +106,8 @@ func (h *AdminHandler) ListRoulettes(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	roulettes, err := h.usecase.ListRoulettes(c.Request().Context(), bearerToken(c.Request().Header.Get("Authorization")))
+	user := c.Get("user").(entity.User)
+	roulettes, err := h.usecase.ListRoulettes(c.Request().Context(), user.UID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
@@ -118,42 +119,46 @@ func (h *AdminHandler) SaveRoulette(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
+	user := c.Get("user").(entity.User)
 	var r entity.Roulette
 	if err := c.Bind(&r); err != nil {
 		return err
 	}
+	r.UserUID = user.UID
 
-	saved, err := h.usecase.SaveRoulette(c.Request().Context(), bearerToken(c.Request().Header.Get("Authorization")), r)
+	saved, err := h.usecase.SaveRoulette(c.Request().Context(), r)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 	return c.JSON(http.StatusOK, saved)
 }
 
-func (h *AdminHandler) DeleteRoulette(ctx echo.Context) error {
+func (h *AdminHandler) DeleteRoulette(c echo.Context) error {
 	if !h.available {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	id := ctx.Param("id")
-	err := h.usecase.DeleteRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), id)
+	user := c.Get("user").(entity.User)
+	id := c.Param("id")
+	err := h.usecase.DeleteRoulette(c.Request().Context(), id, user.UID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
-	return ctx.NoContent(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *AdminHandler) GetRoulette(ctx echo.Context) error {
+func (h *AdminHandler) GetRoulette(c echo.Context) error {
 	if !h.available {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
 	}
 
-	id := ctx.Param("id")
-	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), id)
+	user := c.Get("user").(entity.User)
+	id := c.Param("id")
+	roulette, err := h.usecase.GetRoulette(c.Request().Context(), user.UID, id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found or unauthorized")
 	}
-	return ctx.JSON(http.StatusOK, roulette)
+	return c.JSON(http.StatusOK, roulette)
 }
 
 func bearerToken(header string) string {

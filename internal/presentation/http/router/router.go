@@ -33,11 +33,14 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	e.GET("/api/config/firebase", adminHandler.GetFirebaseConfig)
 	e.POST("/api/auth/login", adminHandler.Login)
 	e.POST("/api/auth/logout", adminHandler.Logout)
-	e.POST("/api/dashboard/session", adminHandler.SyncUser)
-	e.GET("/api/dashboard/roulettes", adminHandler.ListRoulettes)
-	e.GET("/api/dashboard/roulettes/:id", adminHandler.GetRoulette)
-	e.POST("/api/dashboard/roulettes", adminHandler.SaveRoulette)
-	e.DELETE("/api/dashboard/roulettes/:id", adminHandler.DeleteRoulette)
+
+	api := e.Group("/api/dashboard")
+	api.Use(AuthMiddleware)
+	api.POST("/session", adminHandler.SyncUser)
+	api.GET("/roulettes", adminHandler.ListRoulettes)
+	api.GET("/roulettes/:id", adminHandler.GetRoulette)
+	api.POST("/roulettes", adminHandler.SaveRoulette)
+	api.DELETE("/roulettes/:id", adminHandler.DeleteRoulette)
 }
 
 func customHTTPErrorHandler(err error, c echo.Context) {
