@@ -70,8 +70,11 @@ func (h *AdminHandler) Login(c echo.Context) error {
 		Path:     "/",
 		HttpOnly: true,
 		MaxAge:   86400 * 7,
+		SameSite: http.SameSiteLaxMode,
 	}
-	sess.Save(c.Request(), c.Response())
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました: "+err.Error())
+	}
 
 	return c.JSON(http.StatusOK, user)
 }

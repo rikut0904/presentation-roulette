@@ -32,12 +32,12 @@ async function fetchFirebaseConfig() {
 
 async function syncUserSession(user) {
     const idToken = await user.getIdToken();
-    const res = await fetch("/api/dashboard/session", {
+    const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${idToken}`,
         },
+        body: JSON.stringify({ idToken }),
     });
     if (!res.ok) throw new Error("セッションの同期に失敗しました。");
 }
@@ -45,9 +45,7 @@ async function syncUserSession(user) {
 async function loadRoulettes() {
     if (!firebaseAuth.currentUser) return;
 
-    const idToken = await firebaseAuth.currentUser.getIdToken();
     const res = await fetch("/api/dashboard/roulettes", {
-        headers: { "Authorization": `Bearer ${idToken}` },
         cache: "no-store"
     });
     
@@ -230,7 +228,6 @@ async function setupFirebase() {
 
         rouletteForm.onsubmit = async (e) => {
             e.preventDefault();
-            const idToken = await firebaseAuth.currentUser.getIdToken();
             const id = document.getElementById("edit-id").value;
             
             const items = Array.from(modalItemList.children).map(row => ({
@@ -250,8 +247,7 @@ async function setupFirebase() {
                 const res = await fetch("/api/dashboard/roulettes", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${idToken}`
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify(data)
                 });
@@ -268,10 +264,8 @@ async function setupFirebase() {
 
         window.deleteRoulette = async (id) => {
             if (!confirm("このルーレットを削除しますか？")) return;
-            const idToken = await firebaseAuth.currentUser.getIdToken();
             const res = await fetch(`/api/dashboard/roulettes/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${idToken}` }
+                method: "DELETE"
             });
             if (res.ok) {
                 loadRoulettes();

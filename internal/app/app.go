@@ -1,12 +1,14 @@
 package app
 
 import (
+	"encoding/gob"
 	"fmt"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 
+	"presentation-roulette/internal/domain/entity"
 	"presentation-roulette/internal/infrastructure/auth"
 	"presentation-roulette/internal/infrastructure/config"
 	"presentation-roulette/internal/infrastructure/database"
@@ -16,6 +18,10 @@ import (
 	"presentation-roulette/internal/presentation/http/router"
 	"presentation-roulette/internal/usecase"
 )
+
+func init() {
+	gob.Register(entity.User{})
+}
 
 func Run() error {
 	cfg := config.Load()

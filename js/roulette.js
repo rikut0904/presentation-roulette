@@ -138,17 +138,16 @@ window.closeResultModal = () => {
 };
 
 // --- Selection Logic ---
-
-async function loadSelectionList(auth) {
-    const idToken = await auth.currentUser.getIdToken();
+async function loadSelectionList() {
     const res = await fetch("/api/dashboard/roulettes", {
-        headers: { "Authorization": `Bearer ${idToken}` },
         cache: "no-store"
     });
     const roulettes = await res.json();
 
     roulettesList.innerHTML = "";
     if (roulettes && roulettes.length > 0) {
+        // ... (以下略、描画ロジックはそのまま)
+
         roulettesEmpty.style.display = "none";
         roulettes.forEach(r => {
             const item = document.createElement("div");
@@ -178,11 +177,8 @@ async function loadSelectionList(auth) {
     }
 }
 
-async function loadRouletteByID(auth, id) {
-    const idToken = await auth.currentUser.getIdToken();
-    const res = await fetch(`/api/dashboard/roulettes/${id}`, {
-        headers: { "Authorization": `Bearer ${idToken}` }
-    });
+async function loadRouletteByID(id) {
+    const res = await fetch(`/api/dashboard/roulettes/${id}`);
     if (!res.ok) throw new Error("ルーレットが見つかりませんでした");
     state.config = await res.json();
     
@@ -214,12 +210,12 @@ async function setupFirebase() {
                         setStatus("ルーレットを読み込んでいます...");
                         viewSelection.style.display = "none";
                         viewPlay.style.display = "block";
-                        await loadRouletteByID(auth, id);
+                        await loadRouletteByID(id);
                     } else {
                         setStatus("一覧を取得しています...");
                         viewSelection.style.display = "block";
                         viewPlay.style.display = "none";
-                        await loadSelectionList(auth);
+                        await loadSelectionList();
                     }
                     statusElement.style.display = "none"; // 成功したら非表示
                 } catch (err) {
