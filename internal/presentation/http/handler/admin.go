@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 
@@ -39,6 +40,14 @@ func NewUnavailableAdminHandler(clientConfig FirebaseClientConfig, reason string
 		available:         false,
 		unavailableReason: reason,
 	}
+}
+
+func (h *AdminHandler) GetFirebaseConfig(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]any{
+		"enabled": h.available,
+		"reason":  h.unavailableReason,
+		"config":  h.clientConfig,
+	})
 }
 
 func (h *AdminHandler) Login(c echo.Context) error {
