@@ -157,6 +157,10 @@ async function loadRouletteByID(id) {
 async function setupFirebase() {
     try {
         const response = await fetchFirebaseConfig();
+        if (!response.enabled) {
+            setStatus("Firebase は現在利用できません。", "error");
+            return;
+        }
         const app = initializeApp(response.config);
         const auth = getAuth(app);
 
