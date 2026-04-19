@@ -62,6 +62,10 @@ func (h *AdminHandler) SyncUser(c echo.Context) error {
 }
 
 func (h *AdminHandler) ListRoulettes(c echo.Context) error {
+	if !h.available {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+	}
+
 	roulettes, err := h.usecase.ListRoulettes(c.Request().Context(), bearerToken(c.Request().Header.Get("Authorization")))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
@@ -70,6 +74,10 @@ func (h *AdminHandler) ListRoulettes(c echo.Context) error {
 }
 
 func (h *AdminHandler) SaveRoulette(c echo.Context) error {
+	if !h.available {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+	}
+
 	var r entity.Roulette
 	if err := c.Bind(&r); err != nil {
 		return err
@@ -83,6 +91,10 @@ func (h *AdminHandler) SaveRoulette(c echo.Context) error {
 }
 
 func (h *AdminHandler) DeleteRoulette(ctx echo.Context) error {
+	if !h.available {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+	}
+
 	id := ctx.Param("id")
 	err := h.usecase.DeleteRoulette(ctx.Request().Context(), bearerToken(ctx.Request().Header.Get("Authorization")), id)
 	if err != nil {
@@ -92,6 +104,10 @@ func (h *AdminHandler) DeleteRoulette(ctx echo.Context) error {
 }
 
 func (h *AdminHandler) GetRoulette(ctx echo.Context) error {
+	if !h.available {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+	}
+
 	id := ctx.Param("id")
 	roulette, err := h.usecase.GetRoulette(ctx.Request().Context(), id)
 	if err != nil {
