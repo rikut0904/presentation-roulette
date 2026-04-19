@@ -42,11 +42,11 @@ func (r *PostgresRouletteRepository) ListByUser(ctx context.Context, userUID str
 
 	result := make([]entity.Roulette, len(models))
 	for i, m := range models {
-		entity, err := m.toEntity()
+		rouletteEntity, err := m.toEntity()
 		if err != nil {
 			return nil, err
 		}
-		result[i] = entity
+		result[i] = rouletteEntity
 	}
 	return result, nil
 }
