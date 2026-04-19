@@ -11,7 +11,6 @@ const statusElement = document.getElementById("admin-status");
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
-const helperElement = document.getElementById("auth-helper");
 let authStateHandled = false;
 
 function setStatus(msg, type = "info") {
