@@ -1,9 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import {
-    getAuth,
-    onAuthStateChanged,
-    signOut,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { renderHeader } from "./components.js";
+import { getUser, setUser, getRoulettes, setRoulettes } from "./cache.js";
+import { logoutUser } from "./auth.js";
 
 const state = {
     config: null,
@@ -16,19 +13,16 @@ const viewSelection = document.getElementById("view-selection");
 const viewPlay = document.getElementById("view-play");
 const roulettesList = document.getElementById("roulettes-list");
 const roulettesEmpty = document.getElementById("roulettes-empty");
-const logoutButton = document.getElementById("logout-button");
 
 function setStatus(msg, type = "info") {
     statusElement.textContent = msg;
     statusElement.dataset.tone = type;
 }
 
-async function fetchFirebaseConfig() {
-    const res = await fetch("/api/config/firebase", { cache: "no-store" });
-    if (!res.ok) {
-        throw new Error(`Failed to fetch Firebase config (${res.status})`);
-    }
-    return await res.json();
+function unauthorizedError() {
+    const error = new Error("ログインしてください");
+    error.code = "UNAUTHORIZED";
+    return error;
 }
 
 // --- Wheel Logic ---
@@ -138,16 +132,9 @@ window.closeResultModal = () => {
 };
 
 // --- Selection Logic ---
-async function loadSelectionList() {
-    const res = await fetch("/api/dashboard/roulettes", {
-        cache: "no-store"
-    });
-    const roulettes = await res.json();
-
+function renderSelectionList(roulettes) {
     roulettesList.innerHTML = "";
     if (roulettes && roulettes.length > 0) {
-        // ... (以下略、描画ロジックはそのまま)
-
         roulettesEmpty.style.display = "none";
         roulettes.forEach(r => {
             const item = document.createElement("div");
@@ -177,64 +164,72 @@ async function loadSelectionList() {
     }
 }
 
-async function loadRouletteByID(id) {
-    const res = await fetch(`/api/dashboard/roulettes/${id}`);
-    if (!res.ok) throw new Error("ルーレットが見つかりませんでした");
-    state.config = await res.json();
-    
-    document.getElementById("roulette-title").textContent = state.config.title;
-    document.getElementById("roulette-description").textContent = state.config.description || "";
-    renderPlayView();
-}
-
 // --- Initialization ---
 
-async function setupFirebase() {
+async function init() {
+    renderHeader();
+    const logoutBtn = document.getElementById("logout-button");
+    if (logoutBtn) {
+        logoutBtn.onclick = async () => {
+            await logoutUser();
+        };
+    }
+
     try {
-        const response = await fetchFirebaseConfig();
-        if (!response.enabled) {
-            setStatus("Firebase は現在利用できません。", "error");
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get("id");
+        
+        let userData = getUser();
+        let targetData;
+
+        if (id) {
+            const res = await fetch(`/api/dashboard/roulettes/${id}`, { credentials: 'include' });
+            if (res.status === 401) throw unauthorizedError();
+            if (!res.ok) throw new Error("ルーレットが見つかりませんでした");
+            targetData = await res.json();
+        } else {
+            targetData = getRoulettes();
+            if (!targetData) {
+                const res = await fetch("/api/dashboard/roulettes", { credentials: 'include', cache: "no-store" });
+                if (res.status === 401) throw unauthorizedError();
+                if (!res.ok) throw new Error("ルーレット一覧の取得に失敗しました");
+                targetData = await res.json();
+                setRoulettes(targetData);
+            }
+        }
+
+        if (!userData) {
+            const userRes = await fetch("/api/dashboard/me", { credentials: 'include' });
+            if (userRes.status === 401) throw unauthorizedError();
+            if (!userRes.ok) throw new Error("ユーザー情報の取得に失敗しました");
+            userData = await userRes.json();
+            setUser(userData);
+        }
+
+        document.getElementById("user-email").textContent = userData.email;
+
+        if (id) {
+            state.config = targetData;
+            document.getElementById("roulette-title").textContent = state.config.title;
+            document.getElementById("roulette-description").textContent = state.config.description || "";
+            renderPlayView();
+            viewSelection.style.display = "none";
+            viewPlay.style.display = "block";
+        } else {
+            renderSelectionList(targetData);
+            viewSelection.style.display = "block";
+            viewPlay.style.display = "none";
+        }
+        statusElement.style.display = "none";
+    } catch (err) {
+        if (err.code === "UNAUTHORIZED") {
+            await logoutUser();
             return;
         }
-        const app = initializeApp(response.config);
-        const auth = getAuth(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                document.getElementById("user-email").textContent = user.email;
-                const urlParams = new URLSearchParams(window.location.search);
-                const id = urlParams.get("id");
-
-                try {
-                    if (id) {
-                        setStatus("ルーレットを読み込んでいます...");
-                        viewSelection.style.display = "none";
-                        viewPlay.style.display = "block";
-                        await loadRouletteByID(id);
-                    } else {
-                        setStatus("一覧を取得しています...");
-                        viewSelection.style.display = "block";
-                        viewPlay.style.display = "none";
-                        await loadSelectionList();
-                    }
-                    statusElement.style.display = "none"; // 成功したら非表示
-                } catch (err) {
-                    setStatus(err.message, "error");
-                    statusElement.style.display = "block"; // エラー時は再表示
-                }
-            } else {
-                window.location.href = "/login";
-            }
-        });
-
-        logoutButton.onclick = async () => {
-            await signOut(auth);
-            window.location.href = "/login";
-        };
-
-    } catch (error) {
-        setStatus(error.message, "error");
+        setStatus(err.message, "error");
+        statusElement.style.display = "block";
     }
 }
 
-setupFirebase();
+init();

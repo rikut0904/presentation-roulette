@@ -81,9 +81,16 @@ func (h *AdminHandler) Login(c echo.Context) error {
 
 func (h *AdminHandler) Logout(c echo.Context) error {
 	sess, _ := session.Get("session", c)
-	sess.Values["user"] = nil
-	sess.Options.MaxAge = -1
-	sess.Save(c.Request(), c.Response())
+	delete(sess.Values, "user")
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+		SameSite: http.SameSiteLaxMode,
+	}
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "ログアウトに失敗しました")
+	}
 	return c.NoContent(http.StatusOK)
 }
 
@@ -162,6 +169,11 @@ func (h *AdminHandler) GetRoulette(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, "Roulette not found or unauthorized")
 	}
 	return c.JSON(http.StatusOK, roulette)
+}
+
+func (h *AdminHandler) GetMe(c echo.Context) error {
+	user := c.Get("user").(entity.User)
+	return c.JSON(http.StatusOK, user)
 }
 
 func bearerToken(header string) string {
