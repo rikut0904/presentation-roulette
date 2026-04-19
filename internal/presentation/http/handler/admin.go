@@ -59,6 +59,10 @@ func (h *AdminHandler) GetFirebaseConfig(c echo.Context) error {
 }
 
 func (h *AdminHandler) Login(c echo.Context) error {
+	if !h.available {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+	}
+
 	type LoginRequest struct {
 		IDToken string `json:"idToken"`
 	}
