@@ -20,10 +20,10 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	})
 	e.GET("/dashboard", func(c echo.Context) error {
 		return c.File("html/dashboard.html")
-	})
+	}, PageAuthMiddleware)
 	e.GET("/roulette", func(c echo.Context) error {
 		return c.File("html/roulette.html")
-	})
+	}, PageAuthMiddleware)
 	e.GET("/login", func(c echo.Context) error {
 		return c.File("html/login.html")
 	})
