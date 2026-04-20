@@ -30,11 +30,17 @@
 
                 <!-- 2. Play View (Visible if ID present) -->
                 <div id="view-play" style="display: none;">
+                    <button class="btn exit-presentation" onclick="toggleFullscreen(false)" style="display: none;">終了</button>
+
                     <section class="intro-hero" style="padding-top: 0;">
                         <div>
                             <h1 id="raffle-title">Loading...</h1>
                             <p class="intro-lead" id="raffle-description"></p>
-                            
+
+                            <div style="margin-top: 24px;">
+                                <button class="btn" onclick="toggleFullscreen(true)" style="font-size: 0.85rem; padding: 8px 16px;">全画面で表示</button>
+                            </div>
+
                             <div style="margin-top: 48px;">
                                 <h2 style="font-size: 1.25rem; margin-bottom: 20px;">項目一覧</h2>
                                 <div class="glass-card" style="padding: 24px;">

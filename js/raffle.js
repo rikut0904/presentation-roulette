@@ -139,6 +139,37 @@ function setStatus(message, type = "info") {
     statusElement.style.display = message ? "block" : "none";
 }
 
+window.toggleFullscreen = async (enable) => {
+    const exitBtn = document.querySelector(".exit-presentation");
+    if (enable) {
+        document.body.classList.add("presentation-mode");
+        if (exitBtn) exitBtn.style.display = "block";
+        
+        if (document.documentElement.requestFullscreen) {
+            try {
+                await document.documentElement.requestFullscreen();
+                // Try to lock the Escape key to prevent browser's default exit
+                if (navigator.keyboard && navigator.keyboard.lock) {
+                    await navigator.keyboard.lock(["Escape"]);
+                }
+            } catch (err) {
+                console.warn("Fullscreen or Keyboard Lock failed:", err);
+            }
+        }
+    } else {
+        document.body.classList.remove("presentation-mode");
+        if (exitBtn) exitBtn.style.display = "none";
+        
+        // Unlock keyboard and exit fullscreen
+        if (navigator.keyboard && navigator.keyboard.unlock) {
+            navigator.keyboard.unlock();
+        }
+        if (document.fullscreenElement && document.exitFullscreen) {
+            await document.exitFullscreen().catch(() => {});
+        }
+    }
+};
+
 // --- Data ---
 
 function renderSelectionList(raffles) {
@@ -168,16 +199,47 @@ function renderSelectionList(raffles) {
 
 async function init() {
     renderHeader();
-    
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    // Sync presentation mode with browser fullscreen state
+    document.addEventListener("fullscreenchange", () => {
+        // If user exits fullscreen via browser menu/other means, ensure we cleanup
+        if (!document.fullscreenElement) {
+            if (!document.body.classList.contains("modal-open") && document.body.classList.contains("presentation-mode")) {
+                window.toggleFullscreen(false);
+            }
+            // Always unlock keyboard when not in fullscreen
+            if (navigator.keyboard && navigator.keyboard.unlock) {
+                navigator.keyboard.unlock();
+            }
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            // 1. If modal is open, close it. Keyboard Lock prevents browser from exiting fullscreen.
+            if (document.body.classList.contains("modal-open")) {
+                closeModal();
+                e.preventDefault();
+                return;
+            }
+
+            // 2. If in presentation mode and no modal, manually trigger exit
+            if (document.body.classList.contains("presentation-mode")) {
+                window.toggleFullscreen(false);
+                e.preventDefault();
+            }
+        }
+    }, true);
+
     const logoutButton = document.getElementById("logout-button");
     if (logoutButton) {
         logoutButton.onclick = async () => {
             await logoutUser();
         };
     }
-
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
 
     try {
         let targetData = null;
@@ -204,6 +266,11 @@ async function init() {
             document.getElementById("raffle-description").textContent = state.config.description || "";
             renderItemList();
             setStatus("");
+
+            // Auto-fullscreen check after rendering is ready
+            if (params.get("mode") === "fullscreen") {
+                window.toggleFullscreen(true);
+            }
         } else {
             renderSelectionList(targetData);
             viewSelection.style.display = "block";

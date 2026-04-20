@@ -392,6 +392,66 @@ h1 {
     transform: scale(1);
 }
 
+/* Presentation Mode */
+body.presentation-mode {
+    background-image: radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.15) 0px, transparent 80%);
+    overflow: hidden;
+}
+
+body.presentation-mode .admin-navbar,
+body.presentation-mode #view-selection,
+body.presentation-mode .main-content > .wrap > .admin-notice,
+body.presentation-mode #view-play > .intro-hero > div:first-child {
+    display: none !important;
+}
+
+body.presentation-mode .main-content,
+body.presentation-mode .content-body,
+body.presentation-mode .main-content > .wrap {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.presentation-mode #view-play {
+    display: flex !important;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+body.presentation-mode #view-play > .intro-hero {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 800px;
+    padding: 0;
+    margin: 0;
+}
+
+body.presentation-mode .raffle-stage {
+    min-height: 500px;
+    transform: scale(1.2);
+}
+
+body.presentation-mode .exit-presentation {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+body.presentation-mode .exit-presentation:hover {
+    opacity: 1;
+}
+
 /* Responsive */
 @media (max-width: 920px) {
     .intro-hero {
