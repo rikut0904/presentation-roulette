@@ -37,6 +37,8 @@ function renderRaffles(raffles) {
 
     if (rafflesEmpty) rafflesEmpty.style.display = "none";
 
+    const fragment = document.createDocumentFragment();
+
     raffles.forEach((raffle) => {
         const card = document.createElement("div");
         card.className = "raffle-card";
@@ -95,8 +97,10 @@ function renderRaffles(raffles) {
         card.appendChild(header);
         card.appendChild(stats);
         card.appendChild(actions);
-        rafflesList.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    rafflesList.appendChild(fragment);
 }
 
 export function openCreateModal() {
