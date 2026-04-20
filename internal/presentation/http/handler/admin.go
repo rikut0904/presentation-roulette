@@ -1,14 +1,14 @@
 package handler
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"presentation-raffle/internal/domain/entity"
+	"presentation-raffle/internal/usecase"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-
-	"presentation-roulette/internal/domain/entity"
-	"presentation-roulette/internal/usecase"
 )
 
 type FirebaseClientConfig struct {
@@ -19,68 +19,59 @@ type FirebaseClientConfig struct {
 }
 
 type AdminHandler struct {
-	usecase           *usecase.AdminUsecase
-	clientConfig      FirebaseClientConfig
-	available         bool
-	unavailableReason string
-}
-
-func sessionOptions(maxAge int) *sessions.Options {
-	return &sessions.Options{
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   maxAge,
-		SameSite: http.SameSiteLaxMode,
-	}
+	usecase      *usecase.AdminUsecase
+	clientConfig FirebaseClientConfig
+	errorMessage string
 }
 
 func NewAdminHandler(usecase *usecase.AdminUsecase, clientConfig FirebaseClientConfig) *AdminHandler {
 	return &AdminHandler{
 		usecase:      usecase,
 		clientConfig: clientConfig,
-		available:    true,
 	}
 }
 
-func NewUnavailableAdminHandler(clientConfig FirebaseClientConfig, reason string) *AdminHandler {
+func NewUnavailableAdminHandler(clientConfig FirebaseClientConfig, message string) *AdminHandler {
 	return &AdminHandler{
-		clientConfig:      clientConfig,
-		available:         false,
-		unavailableReason: reason,
+		clientConfig: clientConfig,
+		errorMessage: message,
 	}
 }
 
 func (h *AdminHandler) GetFirebaseConfig(c echo.Context) error {
+	enabled := h.errorMessage == ""
 	return c.JSON(http.StatusOK, map[string]any{
-		"enabled": h.available,
-		"reason":  h.unavailableReason,
+		"enabled": enabled,
 		"config":  h.clientConfig,
+		"reason":  h.errorMessage,
 	})
 }
 
 func (h *AdminHandler) Login(c echo.Context) error {
-	if !h.available {
-		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+	if h.errorMessage != "" {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.errorMessage)
 	}
 
-	type LoginRequest struct {
+	var req struct {
 		IDToken string `json:"idToken"`
 	}
-	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
-	user, err := h.usecase.SyncUser(c.Request().Context(), req.IDToken)
+	user, err := h.usecase.VerifyToken(c.Request().Context(), req.IDToken)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "認証に失敗しました")
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
 	}
 
 	sess, _ := session.Get("session", c)
+	sess.Options.MaxAge = 86400 * 7 // 7 days
+	sess.Options.HttpOnly = true
 	sess.Values["uid"] = user.UID
-	sess.Options = sessionOptions(86400 * 7)
+	log.Printf("Login successful: setting session uid: %s", user.UID)
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました: "+err.Error())
+		log.Printf("Failed to save session: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save session")
 	}
 
 	return c.JSON(http.StatusOK, user)
@@ -88,79 +79,83 @@ func (h *AdminHandler) Login(c echo.Context) error {
 
 func (h *AdminHandler) Logout(c echo.Context) error {
 	sess, _ := session.Get("session", c)
-	delete(sess.Values, "uid")
-	sess.Options = sessionOptions(-1)
+	sess.Options.MaxAge = -1
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "ログアウトに失敗しました")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to clear session")
 	}
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *AdminHandler) ListRoulettes(c echo.Context) error {
-	if !h.available {
-		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+func (h *AdminHandler) GetMe(c echo.Context) error {
+	if h.errorMessage != "" {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.errorMessage)
 	}
 
 	userUID := c.Get("userUID").(string)
-	roulettes, err := h.usecase.ListRoulettes(c.Request().Context(), userUID)
+	user, err := h.usecase.GetUser(c.Request().Context(), userUID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
+		return echo.NewHTTPError(http.StatusNotFound, "User not found")
 	}
-	return c.JSON(http.StatusOK, roulettes)
+	return c.JSON(http.StatusOK, user)
 }
 
-func (h *AdminHandler) SaveRoulette(c echo.Context) error {
-	if !h.available {
-		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+func (h *AdminHandler) ListRaffles(c echo.Context) error {
+	if h.errorMessage != "" {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.errorMessage)
 	}
 
 	userUID := c.Get("userUID").(string)
-	var r entity.Roulette
-	if err := c.Bind(&r); err != nil {
-		return err
-	}
-	r.UserUID = userUID
-
-	saved, err := h.usecase.SaveRoulette(c.Request().Context(), r)
+	raffles, err := h.usecase.ListRaffles(c.Request().Context(), userUID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
+		log.Printf("ListRaffles error for uid %s: %v", userUID, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, raffles)
+}
+
+func (h *AdminHandler) SaveRaffle(c echo.Context) error {
+	if h.errorMessage != "" {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.errorMessage)
+	}
+
+	userUID := c.Get("userUID").(string)
+	var k entity.Raffle
+	if err := c.Bind(&k); err != nil {
+		fmt.Printf("Bind error: %v\n", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+	}
+	k.UserUID = userUID
+	saved, err := h.usecase.SaveRaffle(c.Request().Context(), k)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, saved)
 }
 
-func (h *AdminHandler) DeleteRoulette(c echo.Context) error {
-	if !h.available {
-		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+func (h *AdminHandler) DeleteRaffle(c echo.Context) error {
+	if h.errorMessage != "" {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.errorMessage)
 	}
 
 	userUID := c.Get("userUID").(string)
 	id := c.Param("id")
-	err := h.usecase.DeleteRoulette(c.Request().Context(), id, userUID)
+	err := h.usecase.DeleteRaffle(c.Request().Context(), id, userUID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return c.NoContent(http.StatusNoContent)
+	return c.NoContent(http.StatusOK)
 }
 
-func (h *AdminHandler) GetRoulette(c echo.Context) error {
-	if !h.available {
-		return echo.NewHTTPError(http.StatusServiceUnavailable, h.unavailableReason)
+func (h *AdminHandler) GetRaffle(c echo.Context) error {
+	if h.errorMessage != "" {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, h.errorMessage)
 	}
 
 	userUID := c.Get("userUID").(string)
 	id := c.Param("id")
-	roulette, err := h.usecase.GetRoulette(c.Request().Context(), userUID, id)
+	raffle, err := h.usecase.GetRaffle(c.Request().Context(), userUID, id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "ルーレットが見つかりませんでした")
+		return echo.NewHTTPError(http.StatusNotFound, "Raffle not found")
 	}
-	return c.JSON(http.StatusOK, roulette)
-}
-
-func (h *AdminHandler) GetMe(c echo.Context) error {
-	userUID := c.Get("userUID").(string)
-	user, err := h.usecase.GetUserByUID(c.Request().Context(), userUID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "ユーザー情報の取得に失敗しました")
-	}
-	return c.JSON(http.StatusOK, user)
+	return c.JSON(http.StatusOK, raffle)
 }

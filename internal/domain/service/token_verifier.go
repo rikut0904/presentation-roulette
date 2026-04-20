@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"presentation-roulette/internal/domain/entity"
+	"presentation-raffle/internal/domain/entity"
 )
 
 type TokenVerifier interface {

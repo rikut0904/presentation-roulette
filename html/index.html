@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Roulette</title>
+    <title>ラッフル</title>
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
@@ -12,17 +12,18 @@
     <main class="wrap">
         <section class="intro-hero">
             <div>
-                <p class="eyebrow">Roulette</p>
+                <p class="eyebrow">Raffle</p>
                 
                 <div class="intro-actions">
-                    <button class="btn primary" id="index-spin-button" type="button" onclick="spin()">ルーレットを回す</button>
+                    <button class="btn primary" id="index-spin-button" type="button" onclick="spin()">抽選する</button>
                 </div>
 
                 <div style="margin-top: 48px;">
                     <h2 style="font-size: 1.25rem; margin-bottom: 20px;">項目設定</h2>
                     <div id="item-editor" class="glass-card" style="padding: 24px;">
                         <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                            <input type="text" id="new-item-label" placeholder="新しい項目名" style="flex: 1; border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 16px; background: rgba(255,255,255,0.5);">
+                            <input type="text" id="new-item-label" placeholder="新しい項目名" style="flex: 2; border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 16px; background: rgba(255,255,255,0.5);">
+                            <input type="number" id="new-item-weight" value="1" min="1" title="比重" style="flex: 0.5; width: 60px; border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px; background: rgba(255,255,255,0.5); text-align: center;">
                             <button class="btn" id="add-item-button" style="padding: 10px 20px;">追加</button>
                         </div>
                         <div id="item-list" class="legend-list">
@@ -37,10 +38,14 @@
 
             <div class="glass-card">
                 <p class="eyebrow" style="margin-bottom: 4px;">Now Playing</p>
-                <h2 id="index-roulette-title" style="margin-bottom: 24px;">ルーレット</h2>
-                <div class="wheel-stage">
-                    <div class="pointer" aria-hidden="true"></div>
-                    <div class="wheel" id="index-wheel"></div>
+                <h2 id="index-raffle-title" style="margin-bottom: 24px;">ラッフル</h2>
+                <div class="raffle-stage">
+                    <div id="raffle-ticket" class="raffle-ticket">
+                        <span id="ticket-label"></span>
+                    </div>
+                    <div id="raffle-box" class="raffle-box" onclick="spin()">
+                        <span class="raffle-box-label">RAFFLE</span>
+                    </div>
                 </div>
             </div>
         </section>

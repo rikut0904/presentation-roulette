@@ -10,7 +10,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"presentation-roulette/migrations"
+	"presentation-raffle/migrations"
 )
 
 type SchemaMigration struct {

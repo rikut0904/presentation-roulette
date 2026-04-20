@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"presentation-roulette/internal/domain/entity"
+	"presentation-raffle/internal/domain/entity"
 )
 
 type userModel struct {

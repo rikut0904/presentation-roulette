@@ -2,62 +2,73 @@ package usecase
 
 import (
 	"context"
-	"fmt"
-	"presentation-roulette/internal/domain/entity"
-	"presentation-roulette/internal/domain/repository"
-	"presentation-roulette/internal/domain/service"
-	"time"
+	"presentation-raffle/internal/domain/entity"
+	"presentation-raffle/internal/domain/repository"
+	"presentation-raffle/internal/domain/service"
 )
 
 type AdminUsecase struct {
-	userRepo     repository.UserRepository
-	rouletteRepo repository.RouletteRepository
-	verifier     service.TokenVerifier
+	userRepo   repository.UserRepository
+	raffleRepo repository.RaffleRepository
+	verifier   service.TokenVerifier
 }
 
-func NewAdminUsecase(userRepo repository.UserRepository, rouletteRepo repository.RouletteRepository, verifier service.TokenVerifier) *AdminUsecase {
+func NewAdminUsecase(userRepo repository.UserRepository, raffleRepo repository.RaffleRepository, verifier service.TokenVerifier) *AdminUsecase {
 	return &AdminUsecase{
-		userRepo:     userRepo,
-		rouletteRepo: rouletteRepo,
-		verifier:     verifier,
+		userRepo:   userRepo,
+		raffleRepo: raffleRepo,
+		verifier:   verifier,
 	}
 }
 
-func (u *AdminUsecase) SyncUser(ctx context.Context, idToken string) (entity.User, error) {
-	claims, err := u.verifier.VerifyIDToken(ctx, idToken)
+func (u *AdminUsecase) VerifyToken(ctx context.Context, idToken string) (*entity.User, error) {
+	authUser, err := u.verifier.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		return entity.User{}, fmt.Errorf("invalid token: %w", err)
+		return nil, err
 	}
 
-	user := entity.User{
-		UID:           claims.UID,
-		Email:         claims.Email,
-		DisplayName:   claims.DisplayName,
-		PhotoURL:      claims.PhotoURL,
-		Provider:      claims.Provider,
-		EmailVerified: claims.EmailVerified,
-		LastLoginAt:   time.Now(),
+	user, err := u.userRepo.GetByUID(ctx, authUser.UID)
+	if err != nil {
+		// New user or error
+		user = entity.User{
+			UID:           authUser.UID,
+			Email:         authUser.Email,
+			DisplayName:   authUser.DisplayName,
+			PhotoURL:      authUser.PhotoURL,
+			Provider:      authUser.Provider,
+			EmailVerified: authUser.EmailVerified,
+		}
 	}
 
-	return u.userRepo.Upsert(ctx, user)
+	// Always update / Create
+	saved, err := u.userRepo.Upsert(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &saved, nil
 }
 
-func (u *AdminUsecase) GetUserByUID(ctx context.Context, uid string) (entity.User, error) {
-	return u.userRepo.GetByUID(ctx, uid)
+func (u *AdminUsecase) GetUser(ctx context.Context, uid string) (*entity.User, error) {
+	user, err := u.userRepo.GetByUID(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
-func (u *AdminUsecase) ListRoulettes(ctx context.Context, userUID string) ([]entity.Roulette, error) {
-	return u.rouletteRepo.ListByUser(ctx, userUID)
+func (u *AdminUsecase) ListRaffles(ctx context.Context, userUID string) ([]entity.Raffle, error) {
+	return u.raffleRepo.ListByUser(ctx, userUID)
 }
 
-func (u *AdminUsecase) SaveRoulette(ctx context.Context, roulette entity.Roulette) (entity.Roulette, error) {
-	return u.rouletteRepo.Save(ctx, roulette)
+func (u *AdminUsecase) SaveRaffle(ctx context.Context, raffle entity.Raffle) (entity.Raffle, error) {
+	return u.raffleRepo.Save(ctx, raffle)
 }
 
-func (u *AdminUsecase) DeleteRoulette(ctx context.Context, id string, userUID string) error {
-	return u.rouletteRepo.Delete(ctx, id, userUID)
+func (u *AdminUsecase) DeleteRaffle(ctx context.Context, id string, userUID string) error {
+	return u.raffleRepo.Delete(ctx, id, userUID)
 }
 
-func (u *AdminUsecase) GetRoulette(ctx context.Context, userUID string, id string) (entity.Roulette, error) {
-	return u.rouletteRepo.GetByID(ctx, id, userUID)
+func (u *AdminUsecase) GetRaffle(ctx context.Context, userUID string, id string) (entity.Raffle, error) {
+	return u.raffleRepo.GetByID(ctx, id, userUID)
 }

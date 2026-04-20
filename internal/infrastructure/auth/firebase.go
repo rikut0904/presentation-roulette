@@ -10,8 +10,8 @@ import (
 	firebaseauth "firebase.google.com/go/v4/auth"
 	"google.golang.org/api/option"
 
-	"presentation-roulette/internal/domain/entity"
-	"presentation-roulette/internal/infrastructure/config"
+	"presentation-raffle/internal/domain/entity"
+	"presentation-raffle/internal/infrastructure/config"
 )
 
 type FirebaseVerifier struct {

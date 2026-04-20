@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"presentation-roulette/internal/presentation/http/handler"
+	"presentation-raffle/internal/presentation/http/handler"
 )
 
 func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
@@ -21,8 +21,8 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	e.GET("/dashboard", func(c echo.Context) error {
 		return c.File("html/dashboard.html")
 	}, PageAuthMiddleware)
-	e.GET("/roulette", func(c echo.Context) error {
-		return c.File("html/roulette.html")
+	e.GET("/raffle", func(c echo.Context) error {
+		return c.File("html/raffle.html")
 	}, PageAuthMiddleware)
 	e.GET("/login", func(c echo.Context) error {
 		return c.File("html/login.html")
@@ -38,10 +38,10 @@ func Register(e *echo.Echo, adminHandler *handler.AdminHandler) {
 	api := e.Group("/api/dashboard")
 	api.Use(AuthMiddleware)
 	api.GET("/me", adminHandler.GetMe)
-	api.GET("/roulettes", adminHandler.ListRoulettes)
-	api.GET("/roulettes/:id", adminHandler.GetRoulette)
-	api.POST("/roulettes", adminHandler.SaveRoulette)
-	api.DELETE("/roulettes/:id", adminHandler.DeleteRoulette)
+	api.GET("/raffles", adminHandler.ListRaffles)
+	api.GET("/raffles/:id", adminHandler.GetRaffle)
+	api.POST("/raffles", adminHandler.SaveRaffle)
+	api.DELETE("/raffles/:id", adminHandler.DeleteRaffle)
 }
 
 func customHTTPErrorHandler(err error, c echo.Context) {

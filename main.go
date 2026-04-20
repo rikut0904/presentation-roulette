@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"presentation-roulette/internal/app"
+	"presentation-raffle/internal/app"
 )
 
 func main() {

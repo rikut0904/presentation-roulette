@@ -6,29 +6,35 @@ import { logoutUser } from "./auth.js";
 const COLORS = ["#ef476f", "#ff9f1c", "#ffd166", "#06d6a0", "#118ab2", "#7b2cbf"];
 
 const statusElement = document.getElementById("admin-status");
-const reloadRoulettesButton = document.getElementById("reload-users");
-const roulettesList = document.getElementById("users-list");
-const roulettesEmpty = document.getElementById("users-empty");
-const rouletteModal = document.getElementById("roulette-modal");
-const rouletteForm = document.getElementById("roulette-form");
+const reloadRafflesButton = document.getElementById("reload-users");
+const rafflesList = document.getElementById("users-list");
+const rafflesEmpty = document.getElementById("users-empty");
+const raffleModal = document.getElementById("raffle-modal");
+const raffleForm = document.getElementById("raffle-form");
 const modalItemList = document.getElementById("modal-item-list");
+
+function normalizeWeight(value) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
 
 function setStatus(message, type = "info") {
     statusElement.textContent = message;
     statusElement.dataset.tone = type;
 }
 
-function renderRoulettes(roulettes) {
-    roulettesList.innerHTML = "";
+function renderRaffles(raffles) {
+    rafflesList.innerHTML = "";
 
-    if (!roulettes || roulettes.length === 0) {
-        roulettesEmpty.style.display = "block";
+    if (!raffles || raffles.length === 0) {
+        rafflesEmpty.style.display = "block";
+        rafflesEmpty.textContent = "ラッフルはまだありません。";
         return;
     }
 
-    roulettesEmpty.style.display = "none";
+    rafflesEmpty.style.display = "none";
 
-    roulettes.forEach((roulette) => {
+    raffles.forEach((raffle) => {
         const item = document.createElement("div");
         item.className = "admin-user-item";
 
@@ -38,11 +44,11 @@ function renderRoulettes(roulettes) {
         const title = document.createElement("strong");
         title.style.color = "var(--text-main)";
         title.style.fontSize = "1.1rem";
-        title.textContent = roulette.title;
+        title.textContent = raffle.title;
 
         const count = document.createElement("p");
         count.style.fontSize = "0.85rem";
-        count.textContent = `${roulette.items ? roulette.items.length : 0} 項目`;
+        count.textContent = `${raffle.items ? raffle.items.length : 0} 項目`;
 
         summary.appendChild(title);
         summary.appendChild(count);
@@ -58,15 +64,15 @@ function renderRoulettes(roulettes) {
         playButton.className = "btn primary";
         playButton.style.padding = "4px 12px";
         playButton.style.fontSize = "0.8rem";
-        playButton.textContent = "Play";
-        playButton.onclick = () => window.playRoulette(roulette.id);
+        playButton.textContent = "実行";
+        playButton.onclick = () => window.playRaffle(raffle.id);
 
         const editButton = document.createElement("button");
         editButton.className = "btn";
         editButton.style.padding = "4px 12px";
         editButton.style.fontSize = "0.8rem";
         editButton.textContent = "編集";
-        editButton.onclick = () => window.openEditModal(roulette);
+        editButton.onclick = () => window.openEditModal(raffle);
 
         const deleteButton = document.createElement("button");
         deleteButton.className = "btn";
@@ -74,7 +80,7 @@ function renderRoulettes(roulettes) {
         deleteButton.style.fontSize = "0.8rem";
         deleteButton.style.color = "#ef476f";
         deleteButton.textContent = "削除";
-        deleteButton.onclick = () => window.deleteRoulette(roulette.id);
+        deleteButton.onclick = () => window.deleteRaffle(raffle.id);
 
         actions.appendChild(playButton);
         actions.appendChild(editButton);
@@ -82,50 +88,50 @@ function renderRoulettes(roulettes) {
 
         const updated = document.createElement("small");
         updated.style.marginTop = "4px";
-        updated.textContent = `更新: ${new Date(roulette.updatedAt).toLocaleDateString()}`;
+        updated.textContent = `更新: ${new Date(raffle.updatedAt).toLocaleDateString()}`;
 
         meta.appendChild(actions);
         meta.appendChild(updated);
 
         item.appendChild(summary);
         item.appendChild(meta);
-        roulettesList.appendChild(item);
+        rafflesList.appendChild(item);
     });
 }
 
 export function openCreateModal() {
-    document.getElementById("modal-title").textContent = "ルーレットの作成";
+    document.getElementById("modal-title").textContent = "ラッフルの作成";
     document.getElementById("edit-id").value = "";
-    document.getElementById("modal-roulette-title").value = "";
-    document.getElementById("modal-roulette-desc").value = "";
+    document.getElementById("modal-raffle-title").value = "";
+    document.getElementById("modal-raffle-desc").value = "";
     modalItemList.innerHTML = "";
     addItemToModal();
     addItemToModal();
-    rouletteModal.classList.add("is-open");
+    raffleModal.classList.add("is-open");
     document.body.classList.add("modal-open");
 }
 
-window.openEditModal = (roulette) => {
-    document.getElementById("modal-title").textContent = "ルーレットの編集";
-    document.getElementById("edit-id").value = roulette.id;
-    document.getElementById("modal-roulette-title").value = roulette.title;
-    document.getElementById("modal-roulette-desc").value = roulette.description || "";
+window.openEditModal = (raffle) => {
+    document.getElementById("modal-title").textContent = "ラッフルの編集";
+    document.getElementById("edit-id").value = raffle.id;
+    document.getElementById("modal-raffle-title").value = raffle.title;
+    document.getElementById("modal-raffle-desc").value = raffle.description || "";
     modalItemList.innerHTML = "";
 
-    if (roulette.items) {
-        roulette.items.forEach((item) => addItemToModal(item.label, item.color));
+    if (raffle.items) {
+        raffle.items.forEach((item) => addItemToModal(item.label, item.color, item.weight));
     }
 
-    rouletteModal.classList.add("is-open");
+    raffleModal.classList.add("is-open");
     document.body.classList.add("modal-open");
 };
 
-export function closeRouletteModal() {
-    rouletteModal.classList.remove("is-open");
+export function closeRaffleModal() {
+    raffleModal.classList.remove("is-open");
     document.body.classList.remove("modal-open");
 }
 
-export function addItemToModal(label = "", color = "") {
+export function addItemToModal(label = "", color = "", weight = 1) {
     const row = document.createElement("div");
     row.className = "modal-item-row";
     row.style.display = "flex";
@@ -157,6 +163,20 @@ export function addItemToModal(label = "", color = "") {
     labelInput.style.borderRadius = "8px";
     labelInput.style.padding = "8px 12px";
 
+    const weightInput = document.createElement("input");
+    weightInput.type = "number";
+    weightInput.className = "item-weight";
+    weightInput.min = "1";
+    weightInput.step = "1";
+    weightInput.value = String(normalizeWeight(weight));
+    weightInput.title = "抽選比重";
+    weightInput.setAttribute("aria-label", "抽選比重");
+    weightInput.style.width = "72px";
+    weightInput.style.border = "1px solid var(--glass-border)";
+    weightInput.style.borderRadius = "8px";
+    weightInput.style.padding = "8px 10px";
+    weightInput.style.textAlign = "center";
+
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.innerHTML = "&times;";
@@ -170,21 +190,16 @@ export function addItemToModal(label = "", color = "") {
 
     row.appendChild(colorInput);
     row.appendChild(labelInput);
+    row.appendChild(weightInput);
     row.appendChild(removeButton);
     modalItemList.appendChild(row);
 }
 
-export function removeItemFromModal(button) {
-    if (button?.parentElement) {
-        button.parentElement.remove();
-    }
-}
-
 async function initDashboard() {
     try {
-        const { user, roulettes } = await fetchAppData();
+        const { user, raffles } = await fetchAppData();
         document.getElementById("user-email").textContent = user.email;
-        renderRoulettes(roulettes);
+        renderRaffles(raffles);
         statusElement.style.display = "none";
     } catch (error) {
         if (error.code === "UNAUTHORIZED") {
@@ -197,30 +212,30 @@ async function initDashboard() {
     }
 }
 
-async function loadRoulettes() {
+async function loadRaffles() {
     clearCache();
     await initDashboard();
 }
 
-async function saveRoulette(event) {
+async function saveRaffle(event) {
     event.preventDefault();
 
     const id = document.getElementById("edit-id").value;
     const items = Array.from(modalItemList.children).map((row) => ({
         label: row.querySelector(".item-label").value,
         color: row.querySelector(".item-color").value,
-        weight: 1,
+        weight: normalizeWeight(row.querySelector(".item-weight").value),
     }));
 
     const payload = {
         id: id || "0",
-        title: document.getElementById("modal-roulette-title").value,
-        description: document.getElementById("modal-roulette-desc").value,
+        title: document.getElementById("modal-raffle-title").value,
+        description: document.getElementById("modal-raffle-desc").value,
         items,
     };
 
     try {
-        const response = await fetch("/api/dashboard/roulettes", {
+        const response = await fetch("/api/dashboard/raffles", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -236,19 +251,19 @@ async function saveRoulette(event) {
             throw new Error("保存に失敗しました");
         }
 
-        closeRouletteModal();
-        await loadRoulettes();
+        closeRaffleModal();
+        await loadRaffles();
     } catch (error) {
         alert(error.message);
     }
 }
 
-async function deleteRoulette(id) {
-    if (!confirm("このルーレットを削除しますか？")) {
+async function deleteRaffle(id) {
+    if (!confirm("このラッフルを削除しますか？")) {
         return;
     }
 
-    const response = await fetch(`/api/dashboard/roulettes/${id}`, {
+    const response = await fetch(`/api/dashboard/raffles/${id}`, {
         method: "DELETE",
         credentials: "include",
     });
@@ -259,7 +274,7 @@ async function deleteRoulette(id) {
     }
 
     if (response.ok) {
-        await loadRoulettes();
+        await loadRaffles();
     }
 }
 
@@ -273,14 +288,14 @@ async function init() {
         };
     }
 
-    reloadRoulettesButton.onclick = () => {
-        loadRoulettes();
+    reloadRafflesButton.onclick = () => {
+        loadRaffles();
     };
 
-    rouletteForm.onsubmit = saveRoulette;
-    window.deleteRoulette = deleteRoulette;
-    window.playRoulette = (id) => {
-        window.location.href = `/roulette?id=${id}`;
+    raffleForm.onsubmit = saveRaffle;
+    window.deleteRaffle = deleteRaffle;
+    window.playRaffle = (id) => {
+        window.location.href = `/raffle?id=${id}`;
     };
 
     await initDashboard();

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"presentation-roulette/internal/domain/entity"
+	"presentation-raffle/internal/domain/entity"
 )
 
 type UserRepository interface {

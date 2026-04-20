@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -20,11 +21,13 @@ func sessionOptions(maxAge int) *sessions.Options {
 func getSessionUserUID(c echo.Context) (string, error) {
 	sess, err := session.Get("session", c)
 	if err != nil {
+		log.Printf("Session error: %v", err)
 		return "", err
 	}
 
 	userUID, ok := sess.Values["uid"].(string)
 	if !ok || userUID == "" {
+		log.Printf("No uid in session. values: %+v", sess.Values)
 		delete(sess.Values, "uid")
 		sess.Options = sessionOptions(-1)
 		_ = sess.Save(c.Request(), c.Response())
@@ -38,7 +41,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userUID, err := getSessionUserUID(c)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusUnauthorized, "ログインしてください")
+			return err
 		}
 
 		c.Set("userUID", userUID)

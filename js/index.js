@@ -1,16 +1,15 @@
 const COLORS = ["#ef476f", "#ff9f1c", "#ffd166", "#06d6a0", "#118ab2", "#7b2cbf"];
 const DEFAULT_ITEMS = [
-    { label: "参加者A", color: "#ef476f" },
-    { label: "参加者B", color: "#ff9f1c" },
-    { label: "参加者C", color: "#ffd166" },
-    { label: "参加者D", color: "#06d6a0" },
-    { label: "参加者E", color: "#118ab2" },
+    { label: "参加者A", color: "#ef476f", weight: 1 },
+    { label: "参加者B", color: "#ff9f1c", weight: 1 },
+    { label: "参加者C", color: "#ffd166", weight: 1 },
+    { label: "参加者D", color: "#06d6a0", weight: 1 },
+    { label: "参加者E", color: "#118ab2", weight: 1 },
 ];
 
 const state = {
     items: [],
     history: [],
-    rotation: 0,
     spinning: false,
 };
 
@@ -31,29 +30,16 @@ function loadJSONFromStorage(key, fallback) {
 }
 
 function loadFromCache() {
-    state.items = loadJSONFromStorage("roulette-items", [...DEFAULT_ITEMS]);
-    state.history = loadJSONFromStorage("roulette-history", []);
+    state.items = loadJSONFromStorage("raffle-items", loadJSONFromStorage("kujibiki-items", [...DEFAULT_ITEMS]));
+    state.history = loadJSONFromStorage("raffle-history", loadJSONFromStorage("kujibiki-history", []));
 }
 
 function saveToCache() {
-    localStorage.setItem("roulette-items", JSON.stringify(state.items));
-    localStorage.setItem("roulette-history", JSON.stringify(state.history));
+    localStorage.setItem("raffle-items", JSON.stringify(state.items));
+    localStorage.setItem("raffle-history", JSON.stringify(state.history));
 }
 
 // --- UI Rendering ---
-
-function buildWheelBackground(items) {
-    if (items.length === 0) return "#ccc";
-    if (items.length === 1) return items[0].color;
-    
-    const step = 360 / items.length;
-    const stops = items.map((item, index) => {
-        const start = (step * index).toFixed(2);
-        const end = (step * (index + 1)).toFixed(2);
-        return `${item.color} ${start}deg ${end}deg`;
-    });
-    return `conic-gradient(${stops.join(", ")})`;
-}
 
 export function renderItems() {
     const container = document.getElementById("item-list");
@@ -86,8 +72,6 @@ export function renderItems() {
         div.appendChild(contentDiv);
         container.appendChild(div);
     });
-
-    renderWheel();
 }
 
 export function renderHistory() {
@@ -102,7 +86,7 @@ export function renderHistory() {
     container.innerHTML = "";
     state.history.forEach(item => {
         const article = document.createElement("article");
-        article.className = "intro-roulette-card";
+        article.className = "intro-raffle-card";
 
         const leftDiv = document.createElement("div");
         leftDiv.style = "display: flex; align-items: center; gap: 12px;";
@@ -128,32 +112,21 @@ export function renderHistory() {
     });
 }
 
-function renderWheel() {
-    const wheel = document.getElementById("index-wheel");
-    if (!wheel) return;
-
-    wheel.innerHTML = "";
-    const surface = document.createElement("div");
-    surface.className = "wheel-surface";
-    surface.style.background = buildWheelBackground(state.items);
-
-    const center = document.createElement("div");
-    center.className = "wheel-center";
-    center.textContent = state.items.length > 0 ? "GO!" : "EMPTY";
-
-    wheel.appendChild(surface);
-    wheel.appendChild(center);
-}
 // --- Actions ---
 
 export function addItem() {
-    const input = document.getElementById("new-item-label");
-    const label = input.value.trim();
+    const labelInput = document.getElementById("new-item-label");
+    const weightInput = document.getElementById("new-item-weight");
+    const label = labelInput.value.trim();
     if (!label) return;
     
+    let weight = parseInt(weightInput.value, 10);
+    if (isNaN(weight) || weight < 1) weight = 1;
+
     const color = COLORS[state.items.length % COLORS.length];
-    state.items.push({ label, color });
-    input.value = "";
+    state.items.push({ label, color, weight });
+    labelInput.value = "";
+    weightInput.value = "1";
     
     saveToCache();
     renderItems();
@@ -181,50 +154,63 @@ export function clearHistory() {
     }
 }
 
-function pickRandomItem() {
-    if (state.items.length === 0) return null;
+function pickWeightedIndex() {
+    if (state.items.length === 0) return -1;
     
-    const selectedIndex = Math.floor(Math.random() * state.items.length);
-    const step = 360 / state.items.length;
-    const targetCenter = (selectedIndex * step) + (step / 2);
-    const jitter = (Math.random() * step * 0.5) - (step * 0.25);
-
-    return {
-        selected: state.items[selectedIndex],
-        degrees: 360 * (5 + Math.floor(Math.random() * 3)) + (360 - targetCenter) + jitter,
-    };
+    const totalWeight = state.items.reduce((sum, item) => sum + (item.weight || 1), 0);
+    let threshold = Math.random() * totalWeight;
+    
+    for (let i = 0; i < state.items.length; i++) {
+        threshold -= (state.items[i].weight || 1);
+        if (threshold < 0) return i;
+    }
+    return state.items.length - 1;
 }
 
 export function spin() {
     if (state.spinning || state.items.length === 0) return;
     
-    const wheel = document.getElementById("index-wheel");
+    const box = document.getElementById("raffle-box");
+    const ticket = document.getElementById("raffle-ticket");
+    const ticketLabel = document.getElementById("ticket-label");
     const spinButton = document.getElementById("index-spin-button");
     
     state.spinning = true;
     spinButton.disabled = true;
-    spinButton.textContent = "回転中...";
+    spinButton.textContent = "抽選中...";
 
-    const result = pickRandomItem();
-    state.rotation += result.degrees;
-    wheel.style.transform = `rotate(${state.rotation}deg)`;
+    // Hide old ticket
+    ticket.classList.remove("showing");
+    box.classList.add("shaking");
 
+    const selectedIndex = pickWeightedIndex();
+    const selected = state.items[selectedIndex];
+    
     window.setTimeout(() => {
-        state.spinning = false;
-        spinButton.disabled = false;
-        spinButton.textContent = "ルーレットを回す";
+        box.classList.remove("shaking");
         
-        // Add to history
-        state.history.unshift({
-            ...result.selected,
-            timestamp: new Date().toISOString()
-        });
-        state.history = state.history.slice(0, 10);
-        
-        saveToCache();
-        renderHistory();
-        openResultModal(result.selected);
-    }, 4200);
+        // Show ticket
+        ticketLabel.textContent = selected.label;
+        ticket.style.borderLeft = `8px solid ${selected.color}`;
+        ticket.classList.add("showing");
+
+        window.setTimeout(() => {
+            state.spinning = false;
+            spinButton.disabled = false;
+            spinButton.textContent = "抽選する";
+            
+            // Add to history
+            state.history.unshift({
+                ...selected,
+                timestamp: new Date().toISOString()
+            });
+            state.history = state.history.slice(0, 10);
+            
+            saveToCache();
+            renderHistory();
+            openResultModal(selected);
+        }, 800);
+    }, 1500);
 }
 
 // --- Modal Logic ---
