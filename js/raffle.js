@@ -141,9 +141,11 @@ function setStatus(message, type = "info") {
 
 window.toggleFullscreen = async (enable) => {
     const exitBtn = document.querySelector(".exit-presentation");
+    const enterBtn = document.getElementById("fullscreen-button");
     if (enable) {
         document.body.classList.add("presentation-mode");
         if (exitBtn) exitBtn.style.display = "block";
+        if (enterBtn) enterBtn.style.display = "none";
         
         if (document.documentElement.requestFullscreen) {
             try {
@@ -159,6 +161,7 @@ window.toggleFullscreen = async (enable) => {
     } else {
         document.body.classList.remove("presentation-mode");
         if (exitBtn) exitBtn.style.display = "none";
+        if (enterBtn) enterBtn.style.display = "block";
         
         // Unlock keyboard and exit fullscreen
         if (navigator.keyboard && navigator.keyboard.unlock) {

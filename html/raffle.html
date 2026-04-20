@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>くじ引き</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
@@ -30,17 +31,15 @@
 
                 <!-- 2. Play View (Visible if ID present) -->
                 <div id="view-play" style="display: none;">
-                    <button class="btn exit-presentation" onclick="toggleFullscreen(false)" style="display: none;">終了</button>
-
+                    <button class="btn exit-presentation" onclick="toggleFullscreen(false)" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 50%; width: 48px; height: 48px; padding: 0;">
+                        <span class="material-symbols-outlined">fullscreen_exit</span>
+                    </button>
+                    
                     <section class="intro-hero" style="padding-top: 0;">
                         <div>
                             <h1 id="raffle-title">Loading...</h1>
                             <p class="intro-lead" id="raffle-description"></p>
-
-                            <div style="margin-top: 24px;">
-                                <button class="btn" onclick="toggleFullscreen(true)" style="font-size: 0.85rem; padding: 8px 16px;">全画面で表示</button>
-                            </div>
-
+                            
                             <div style="margin-top: 48px;">
                                 <h2 style="font-size: 1.25rem; margin-bottom: 20px;">項目一覧</h2>
                                 <div class="glass-card" style="padding: 24px;">
@@ -52,7 +51,12 @@
                         </div>
 
                         <div class="glass-card">
-                            <p class="eyebrow" style="margin-bottom: 4px;">Now Playing</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <p class="eyebrow" style="margin: 0;">Now Playing</p>
+                                <button id="fullscreen-button" class="btn" onclick="toggleFullscreen(true)" style="background: none; border: none; padding: 4px; color: var(--accent); min-width: 0;">
+                                    <span class="material-symbols-outlined">fullscreen</span>
+                                </button>
+                            </div>
                             <div class="raffle-stage">
                                 <div id="raffle-ticket" class="raffle-ticket">
                                     <span id="ticket-label"></span>
