@@ -176,8 +176,10 @@ export function spin() {
     const spinButton = document.getElementById("index-spin-button");
     
     state.spinning = true;
-    spinButton.disabled = true;
-    spinButton.textContent = "抽選中...";
+    if (spinButton) {
+        spinButton.disabled = true;
+        spinButton.textContent = "抽選中...";
+    }
 
     // Hide old ticket
     ticket.classList.remove("showing");
@@ -196,8 +198,10 @@ export function spin() {
 
         window.setTimeout(() => {
             state.spinning = false;
-            spinButton.disabled = false;
-            spinButton.textContent = "抽選する";
+            if (spinButton) {
+                spinButton.disabled = false;
+                spinButton.textContent = "抽選する";
+            }
             
             // Add to history
             state.history.unshift({

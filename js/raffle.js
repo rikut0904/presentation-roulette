@@ -50,8 +50,10 @@ export function spin() {
     if (state.spinning || !state.config || state.config.items.length === 0) return;
     
     state.spinning = true;
-    spinButton.disabled = true;
-    spinButton.textContent = "抽選中...";
+    if (spinButton) {
+        spinButton.disabled = true;
+        spinButton.textContent = "抽選中...";
+    }
 
     // Animation
     ticket.classList.remove("showing");
@@ -71,8 +73,10 @@ export function spin() {
 
         window.setTimeout(() => {
             state.spinning = false;
-            spinButton.disabled = false;
-            spinButton.textContent = "抽選する";
+            if (spinButton) {
+                spinButton.disabled = false;
+                spinButton.textContent = "抽選する";
+            }
             
             openResultModal(selected);
         }, 800);

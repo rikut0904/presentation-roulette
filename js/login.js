@@ -9,8 +9,8 @@ import { clearLogoutMarker, clearBrowserState, isLogoutInProgress, syncUserSessi
 
 const statusElement = document.getElementById("admin-status");
 const loginForm = document.getElementById("login-form");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
+const emailInput = document.getElementById("login-email");
+const passwordInput = document.getElementById("login-password");
 let authStateHandled = false;
 
 function setStatus(msg, type = "info") {

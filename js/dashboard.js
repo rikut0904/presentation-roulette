@@ -6,7 +6,6 @@ import { logoutUser } from "./auth.js";
 const COLORS = ["#ef476f", "#ff9f1c", "#ffd166", "#06d6a0", "#118ab2", "#7b2cbf"];
 
 const statusElement = document.getElementById("admin-status");
-const reloadRafflesButton = document.getElementById("reload-users");
 const rafflesList = document.getElementById("users-list");
 const rafflesEmpty = document.getElementById("users-empty");
 const raffleModal = document.getElementById("raffle-modal");
@@ -19,20 +18,24 @@ function normalizeWeight(value) {
 }
 
 function setStatus(message, type = "info") {
+    if (!statusElement) return;
     statusElement.textContent = message;
     statusElement.dataset.tone = type;
 }
 
 function renderRaffles(raffles) {
+    if (!rafflesList) return;
     rafflesList.innerHTML = "";
 
     if (!raffles || raffles.length === 0) {
-        rafflesEmpty.style.display = "block";
-        rafflesEmpty.textContent = "くじ引きはまだありません。";
+        if (rafflesEmpty) {
+            rafflesEmpty.style.display = "block";
+            rafflesEmpty.textContent = "くじ引きはまだありません。";
+        }
         return;
     }
 
-    rafflesEmpty.style.display = "none";
+    if (rafflesEmpty) rafflesEmpty.style.display = "none";
 
     raffles.forEach((raffle) => {
         const item = document.createElement("div");
@@ -100,26 +103,32 @@ function renderRaffles(raffles) {
 }
 
 export function openCreateModal() {
+    if (!raffleModal) return;
     document.getElementById("modal-title").textContent = "くじ引きの作成";
     document.getElementById("edit-id").value = "";
     document.getElementById("modal-raffle-title").value = "";
     document.getElementById("modal-raffle-desc").value = "";
-    modalItemList.innerHTML = "";
-    addItemToModal();
-    addItemToModal();
+    if (modalItemList) {
+        modalItemList.innerHTML = "";
+        addItemToModal();
+        addItemToModal();
+    }
     raffleModal.classList.add("is-open");
     document.body.classList.add("modal-open");
 }
 
 window.openEditModal = (raffle) => {
+    if (!raffleModal) return;
     document.getElementById("modal-title").textContent = "くじ引きの編集";
     document.getElementById("edit-id").value = raffle.id;
     document.getElementById("modal-raffle-title").value = raffle.title;
     document.getElementById("modal-raffle-desc").value = raffle.description || "";
-    modalItemList.innerHTML = "";
-
-    if (raffle.items) {
-        raffle.items.forEach((item) => addItemToModal(item.label, item.color, item.weight));
+    
+    if (modalItemList) {
+        modalItemList.innerHTML = "";
+        if (raffle.items) {
+            raffle.items.forEach((item) => addItemToModal(item.label, item.color, item.weight));
+        }
     }
 
     raffleModal.classList.add("is-open");
@@ -127,11 +136,12 @@ window.openEditModal = (raffle) => {
 };
 
 export function closeRaffleModal() {
-    raffleModal.classList.remove("is-open");
+    if (raffleModal) raffleModal.classList.remove("is-open");
     document.body.classList.remove("modal-open");
 }
 
 export function addItemToModal(label = "", color = "", weight = 1) {
+    if (!modalItemList) return;
     const row = document.createElement("div");
     row.className = "modal-item-row";
     row.style.display = "flex";
@@ -198,9 +208,11 @@ export function addItemToModal(label = "", color = "", weight = 1) {
 async function initDashboard() {
     try {
         const { user, raffles } = await fetchAppData();
-        document.getElementById("user-email").textContent = user.email;
+        const userEmailEl = document.getElementById("user-email");
+        if (userEmailEl) userEmailEl.textContent = user.email;
+        
         renderRaffles(raffles);
-        statusElement.style.display = "none";
+        if (statusElement) statusElement.style.display = "none";
     } catch (error) {
         if (error.code === "UNAUTHORIZED") {
             await logoutUser();
@@ -208,18 +220,14 @@ async function initDashboard() {
         }
 
         setStatus(error.message, "error");
-        statusElement.style.display = "block";
+        if (statusElement) statusElement.style.display = "block";
     }
-}
-
-async function loadRaffles() {
-    clearCache();
-    await initDashboard();
 }
 
 async function saveRaffle(event) {
     event.preventDefault();
 
+    if (!modalItemList) return;
     const id = document.getElementById("edit-id").value;
     const items = Array.from(modalItemList.children).map((row) => ({
         label: row.querySelector(".item-label").value,
@@ -252,7 +260,8 @@ async function saveRaffle(event) {
         }
 
         closeRaffleModal();
-        await loadRaffles();
+        clearCache();
+        await initDashboard();
     } catch (error) {
         alert(error.message);
     }
@@ -274,7 +283,8 @@ async function deleteRaffle(id) {
     }
 
     if (response.ok) {
-        await loadRaffles();
+        clearCache();
+        await initDashboard();
     }
 }
 
@@ -288,11 +298,10 @@ async function init() {
         };
     }
 
-    reloadRafflesButton.onclick = () => {
-        loadRaffles();
-    };
-
-    raffleForm.onsubmit = saveRaffle;
+    if (raffleForm) {
+        raffleForm.onsubmit = saveRaffle;
+    }
+    
     window.deleteRaffle = deleteRaffle;
     window.playRaffle = (id) => {
         window.location.href = `/raffle?id=${id}`;
