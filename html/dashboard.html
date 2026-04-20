@@ -5,35 +5,34 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dashboard | くじ引き</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
 <body class="admin-body">
-    <div class="admin-layout">
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="wrap content-body">
-                <div id="admin-status" class="admin-notice">設定を確認しています...</div>
+        <div class="admin-layout">
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="wrap content-body">
+                    <div id="admin-status" class="admin-notice">設定を確認しています...</div>
 
-                <h1 style="margin-bottom: 8px;">Dashboard</h1>
+                    <div class="page-header">
+                        <h1 class="page-title">Dashboard</h1>
+                        <button onclick="openCreateModal()" class="btn primary" style="padding: 10px 24px;">
+                            <span class="material-symbols-outlined" style="margin-right: 8px;">add_circle</span>
+                            新規作成
+                        </button>
+                    </div>
 
-                <div class="admin-grid" style="grid-template-columns: 1fr;">
-                    <section class="glass-card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                            <h2 style="font-size: 1.25rem; margin: 0;">保存済み</h2>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="openCreateModal()" class="btn primary"
-                                    style="padding: 8px 16px; font-size: 0.85rem;">新規作成</button>
-                            </div>
-                        </div>
-                        <div id="users-empty" class="admin-empty">くじ引きはまだありません。</div>
-                        <div id="users-list" class="admin-user-list"></div>
-                    </section>
+                    <div class="admin-grid">
+                        <section class="glass-card">
+                            <div id="users-empty" class="admin-empty">くじ引きはまだありません。</div>
+                            <div id="users-list" class="admin-user-list"></div>
+                        </section>
+                    </div>
                 </div>
-            </div>
-        </main>
-    </div>
+            </main>
+        </div>
 
     <!-- Create/Edit Modal -->
     <div id="raffle-modal" class="result-modal">
@@ -63,7 +62,7 @@
 
                 <div style="display: flex; gap: 12px; margin-top: 32px;">
                     <button type="button" onclick="closeRaffleModal()" class="btn" style="flex: 1;">キャンセル</button>
-                    <button type="submit" class="btn primary" style="flex: 1;">保存する</button>
+                    <button type="submit" class="btn primary" style="flex: 1;">保存</button>
                 </div>
             </form>
         </div>

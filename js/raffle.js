@@ -109,7 +109,6 @@ function openResultModal(selected) {
         modal.innerHTML = `
             <div class="result-modal-backdrop" data-close-modal></div>
             <div class="result-modal-dialog">
-                <button class="result-modal-close" type="button" data-close-modal>×</button>
                 <p class="result-label">選ばれたのは...</p>
                 <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
             </div>
@@ -139,28 +138,91 @@ function setStatus(message, type = "info") {
     statusElement.style.display = message ? "block" : "none";
 }
 
+window.toggleFullscreen = async (enable) => {
+    const exitBtn = document.querySelector(".exit-presentation");
+    const enterBtn = document.getElementById("fullscreen-button");
+    if (enable) {
+        document.body.classList.add("presentation-mode");
+        if (exitBtn) exitBtn.style.display = "block";
+        if (enterBtn) enterBtn.style.display = "none";
+        
+        if (document.documentElement.requestFullscreen) {
+            try {
+                await document.documentElement.requestFullscreen();
+                // Try to lock the Escape key to prevent browser's default exit
+                if (navigator.keyboard && navigator.keyboard.lock) {
+                    await navigator.keyboard.lock(["Escape"]);
+                }
+            } catch (err) {
+                console.warn("Fullscreen or Keyboard Lock failed:", err);
+            }
+        }
+    } else {
+        document.body.classList.remove("presentation-mode");
+        if (exitBtn) exitBtn.style.display = "none";
+        if (enterBtn) enterBtn.style.display = "block";
+        
+        // Unlock keyboard and exit fullscreen
+        if (navigator.keyboard && navigator.keyboard.unlock) {
+            navigator.keyboard.unlock();
+        }
+        if (document.fullscreenElement && document.exitFullscreen) {
+            await document.exitFullscreen().catch(() => {});
+        }
+    }
+};
+
 // --- Data ---
 
 function renderSelectionList(raffles) {
     rafflesList.innerHTML = "";
     if (raffles && raffles.length > 0) {
         rafflesEmpty.style.display = "none";
+        const fragment = document.createDocumentFragment();
+
         raffles.forEach(r => {
-            const item = document.createElement("div");
-            item.className = "admin-user-item";
-            item.style.cursor = "pointer";
-            item.onclick = () => { window.location.href = `/raffle?id=${r.id}`; };
-            item.innerHTML = `
-                <div class="user-info">
-                    <strong>${r.title}</strong>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">${r.items ? r.items.length : 0} 項目</div>
-                </div>
-                <div class="user-actions">
-                    <button class="btn primary">実行</button>
-                </div>
-            `;
-            rafflesList.appendChild(item);
+            const card = document.createElement("div");
+            card.className = "raffle-card";
+            card.style.cursor = "pointer";
+            card.onclick = () => { window.location.href = `/raffle?id=${r.id}`; };
+
+            const header = document.createElement("div");
+            header.className = "raffle-card-header";
+            
+            const title = document.createElement("strong");
+            title.className = "raffle-card-title";
+            title.textContent = r.title;
+
+            const desc = document.createElement("p");
+            desc.className = "raffle-card-desc";
+            desc.textContent = r.description || "説明はありません。";
+
+            header.appendChild(title);
+            header.appendChild(desc);
+
+            const stats = document.createElement("div");
+            stats.className = "raffle-card-stats";
+            
+            const count = document.createElement("span");
+            count.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">list_alt</span> ${r.items ? r.items.length : 0} 項目`;
+
+            const date = document.createElement("span");
+            const formattedDate = new Date(r.updatedAt).toLocaleDateString();
+            date.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_today</span> 更新: ${formattedDate}`;
+
+            stats.appendChild(count);
+            stats.appendChild(date);
+
+            const actions = document.createElement("div");
+            actions.className = "raffle-card-actions";
+            actions.innerHTML = `<button class="btn primary" style="width: 100%"><span class="material-symbols-outlined" style="margin-right: 8px;">play_arrow</span> 実行する</button>`;
+
+            card.appendChild(header);
+            card.appendChild(stats);
+            card.appendChild(actions);
+            fragment.appendChild(card);
         });
+        rafflesList.appendChild(fragment);
     } else {
         rafflesEmpty.style.display = "block";
     }
@@ -168,16 +230,47 @@ function renderSelectionList(raffles) {
 
 async function init() {
     renderHeader();
-    
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    // Sync presentation mode with browser fullscreen state
+    document.addEventListener("fullscreenchange", () => {
+        if (!document.fullscreenElement && !document.body.classList.contains("modal-open")) {
+            if (document.body.classList.contains("presentation-mode")) {
+                window.toggleFullscreen(false);
+            }
+        }
+        
+        if (!document.fullscreenElement && navigator.keyboard && navigator.keyboard.unlock) {
+            navigator.keyboard.unlock();
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            if (document.body.classList.contains("modal-open")) {
+                closeModal();
+                
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return;
+            }
+
+            if (document.body.classList.contains("presentation-mode")) {
+                window.toggleFullscreen(false);
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }
+    }, { capture: true });
+
     const logoutButton = document.getElementById("logout-button");
     if (logoutButton) {
         logoutButton.onclick = async () => {
             await logoutUser();
         };
     }
-
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
 
     try {
         let targetData = null;
@@ -201,14 +294,14 @@ async function init() {
             state.config = targetData;
             viewPlay.style.display = "block";
             document.getElementById("raffle-title").textContent = state.config.title;
-            document.getElementById("raffle-description").textContent = state.config.description || "";
+            document.getElementById("raffle-description").textContent = state.config.description || "説明はありません。";
             renderItemList();
             setStatus("");
-        } else {
+            } else {
             renderSelectionList(targetData);
             viewSelection.style.display = "block";
             setStatus("");
-        }
+            }
 
     } catch (err) {
         if (err.code === "UNAUTHORIZED") {

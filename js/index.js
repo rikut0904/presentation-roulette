@@ -46,6 +46,8 @@ export function renderItems() {
     if (!container) return;
 
     container.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+
     state.items.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "legend-item";
@@ -70,8 +72,10 @@ export function renderItems() {
         contentDiv.appendChild(removeBtn);
         div.appendChild(colorSpan);
         div.appendChild(contentDiv);
-        container.appendChild(div);
+        fragment.appendChild(div);
     });
+
+    container.appendChild(fragment);
 }
 
 export function renderHistory() {
@@ -84,6 +88,8 @@ export function renderHistory() {
     }
 
     container.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+
     state.history.forEach(item => {
         const article = document.createElement("article");
         article.className = "intro-raffle-card";
@@ -108,8 +114,10 @@ export function renderHistory() {
 
         article.appendChild(leftDiv);
         article.appendChild(time);
-        container.appendChild(article);
+        fragment.appendChild(article);
     });
+
+    container.appendChild(fragment);
 }
 
 // --- Actions ---
@@ -229,7 +237,6 @@ function ensureResultModal() {
     modal.innerHTML = `
         <div class="result-modal-backdrop" data-close-modal></div>
         <div class="result-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
-            <button class="result-modal-close" type="button" aria-label="閉じる" data-close-modal>×</button>
             <p class="result-label">選ばれたのは...</p>
             <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
         </div>

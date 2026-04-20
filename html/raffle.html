@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>くじ引き</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
@@ -17,8 +18,10 @@
 
                 <!-- 1. Selection View (Visible if no ID) -->
                 <div id="view-selection" style="display: none;">
-                    <h1 style="margin-bottom: 8px;">くじ引きを選択</h1>
-                    <p class="admin-section-copy" style="margin-bottom: 32px;">実行したいくじ引きを選択してください。</p>
+                    <div class="page-header" style="flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 32px;">
+                        <h1 class="page-title">くじ引きを選択</h1>
+                        <p class="admin-section-copy">実行したいくじ引きを選択してください。</p>
+                    </div>
                     
                     <section class="glass-card">
                         <div id="raffles-empty" class="admin-empty" style="text-align: center; padding: 40px;">作成済みのくじ引きはありません。<br><a href="/dashboard" style="color: var(--accent);">Dashboard</a>から作成できます。</div>
@@ -30,13 +33,17 @@
 
                 <!-- 2. Play View (Visible if ID present) -->
                 <div id="view-play" style="display: none;">
+                    <button class="btn exit-presentation" onclick="toggleFullscreen(false)" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 50%; width: 48px; height: 48px; padding: 0;">
+                        <span class="material-symbols-outlined">fullscreen_exit</span>
+                    </button>
+                    
                     <section class="intro-hero" style="padding-top: 0;">
                         <div>
-                            <h1 id="raffle-title">Loading...</h1>
+                            <h1 id="raffle-title" class="page-title">Loading...</h1>
                             <p class="intro-lead" id="raffle-description"></p>
                             
                             <div style="margin-top: 48px;">
-                                <h2 style="font-size: 1.25rem; margin-bottom: 20px;">項目一覧</h2>
+                                <h2 class="section-title">項目一覧</h2>
                                 <div class="glass-card" style="padding: 24px;">
                                     <div id="item-list" class="legend-list">
                                         <!-- Items rendered here -->
@@ -46,7 +53,12 @@
                         </div>
 
                         <div class="glass-card">
-                            <p class="eyebrow" style="margin-bottom: 4px;">Now Playing</p>
+                            <div class="raffle-play-header">
+                                <p class="eyebrow" style="margin: 0;">Now Playing</p>
+                                <button id="fullscreen-button" class="btn" onclick="toggleFullscreen(true)" style="background: none; border: none; padding: 4px; color: var(--accent); min-width: 0;">
+                                    <span class="material-symbols-outlined">fullscreen</span>
+                                </button>
+                            </div>
                             <div class="raffle-stage">
                                 <div id="raffle-ticket" class="raffle-ticket">
                                     <span id="ticket-label"></span>
