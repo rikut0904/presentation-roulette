@@ -4,20 +4,64 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ルーレット</title>
+    <title>くじ引き</title>
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
 <body>
     <main class="wrap">
-        <section id="view" class="panel" aria-live="polite"></section>
+        <section class="intro-hero">
+            <div>
+                <div style="margin-top: 48px;">
+                    <h2 style="font-size: 1.25rem; margin-bottom: 20px;">項目設定</h2>
+                    <div id="item-editor" class="glass-card" style="padding: 24px;">
+                        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                            <input type="text" id="new-item-label" placeholder="新しい項目名" style="flex: 2; border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 16px; background: rgba(255,255,255,0.5);">
+                            <button class="btn" id="add-item-button" style="padding: 10px 20px;">追加</button>
+                        </div>
+                        <div id="item-list" class="legend-list">
+                            <!-- Items will be rendered here -->
+                        </div>
+                        <div style="margin-top: 20px; text-align: right;">
+                            <button id="reset-items-button" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; text-decoration: underline;">初期状態に戻す</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <p class="eyebrow" style="margin-bottom: 4px;">Now Playing</p>
+                <h2 id="index-raffle-title" style="margin-bottom: 24px;">くじ引き</h2>
+                <div class="raffle-stage">
+                    <div id="raffle-ticket" class="raffle-ticket">
+                        <span id="ticket-label"></span>
+                    </div>
+                    <div id="raffle-box" class="raffle-box" onclick="spin()">
+                        <span class="raffle-box-label">くじ引き</span>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <footer class="wrap">
-        <small>&copy; 2026 rikut0904. All rights reserved.</small>
+    <footer class="wrap" style="padding: 40px 0; border-top: 1px solid var(--glass-border);">
+        <div class="footer-row">
+            <small>&copy; 2026 rikut0904. All rights reserved.</small>
+            <nav style="display: flex; gap: 24px;">
+                <a class="footer-link" href="/dashboard" style="font-size: 0.9rem; color: var(--accent); font-weight: 600;">Dashboard →</a>
+            </nav>
+        </div>
     </footer>
 
-    <script defer src="/js/index.js"></script>
+    <script type="module" src="/js/index.js"></script>
+    <script type="module">
+        import { addItem, removeItem, resetItems, clearHistory, spin } from '/js/index.js';
+        window.addItem = addItem;
+        window.removeItem = removeItem;
+        window.resetItems = resetItems;
+        window.clearHistory = clearHistory;
+        window.spin = spin;
+    </script>
 </body>
 
 </html>

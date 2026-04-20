@@ -1,56 +1,223 @@
+const COLORS = ["#ef476f", "#ff9f1c", "#ffd166", "#06d6a0", "#118ab2", "#7b2cbf"];
+const DEFAULT_ITEMS = [
+    { label: "参加者A", color: "#ef476f", weight: 1 },
+    { label: "参加者B", color: "#ff9f1c", weight: 1 },
+    { label: "参加者C", color: "#ffd166", weight: 1 },
+    { label: "参加者D", color: "#06d6a0", weight: 1 },
+    { label: "参加者E", color: "#118ab2", weight: 1 },
+];
+
 const state = {
-    config: null,
-    rotation: 0,
+    items: [],
+    history: [],
     spinning: false,
 };
 
-const view = () => document.getElementById("view");
+// --- Storage Logic ---
 
-function navigate(path) {
-    if (location.pathname !== path) {
-        history.pushState({}, "", path);
+function loadJSONFromStorage(key, fallback) {
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+        return fallback;
     }
-    renderRoulette();
+
+    try {
+        return JSON.parse(raw);
+    } catch (_error) {
+        localStorage.removeItem(key);
+        return fallback;
+    }
 }
 
-window.addEventListener("popstate", renderRoulette);
-
-document.addEventListener("click", (event) => {
-    const link = event.target.closest("a[data-link]");
-    if (!link) return;
-    event.preventDefault();
-    navigate(new URL(link.href).pathname);
-});
-
-async function fetchRoulette() {
-    const res = await fetch("/api/roulette", { cache: "no-store" });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return res.json();
+function loadFromCache() {
+    state.items = loadJSONFromStorage("raffle-items", loadJSONFromStorage("kujibiki-items", [...DEFAULT_ITEMS]));
+    state.history = loadJSONFromStorage("raffle-history", loadJSONFromStorage("kujibiki-history", []));
 }
 
-async function spinRoulette() {
-    const res = await fetch("/api/roulette/spin", { method: "POST" });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return res.json();
+function saveToCache() {
+    localStorage.setItem("raffle-items", JSON.stringify(state.items));
+    localStorage.setItem("raffle-history", JSON.stringify(state.history));
 }
 
-function buildWheelBackground(items) {
-    const step = 360 / items.length;
-    const stops = items.map((item, index) => {
-        const start = (step * index).toFixed(2);
-        const end = (step * (index + 1)).toFixed(2);
-        return `${item.color} ${start}deg ${end}deg`;
+// --- UI Rendering ---
+
+export function renderItems() {
+    const container = document.getElementById("item-list");
+    if (!container) return;
+
+    container.innerHTML = "";
+    state.items.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "legend-item";
+
+        const colorSpan = document.createElement("span");
+        colorSpan.className = "legend-color";
+        colorSpan.style.background = item.color;
+
+        const contentDiv = document.createElement("div");
+        contentDiv.style = "display: flex; justify-content: space-between; width: 100%; align-items: center;";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = item.label;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.innerHTML = "&times;";
+        removeBtn.style = "background: none; border: none; color: #ef476f; cursor: pointer; font-size: 1.2rem; padding: 0 8px;";
+        removeBtn.onclick = () => window.removeItem(index);
+
+        contentDiv.appendChild(labelSpan);
+        contentDiv.appendChild(removeBtn);
+        div.appendChild(colorSpan);
+        div.appendChild(contentDiv);
+        container.appendChild(div);
     });
-    return `conic-gradient(${stops.join(", ")})`;
 }
 
-function renderRouletteShell(config) {
-    const wheel = document.querySelector(".wheel");
-    wheel.innerHTML = `
-        <div class="wheel-surface" style="background: ${buildWheelBackground(config.items)};"></div>
-        <div class="wheel-center">START</div>
-    `;
+export function renderHistory() {
+    const container = document.getElementById("history-list");
+    if (!container) return;
+
+    if (state.history.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); padding: 20px; text-align: center;">履歴はありません</p>`;
+        return;
+    }
+
+    container.innerHTML = "";
+    state.history.forEach(item => {
+        const article = document.createElement("article");
+        article.className = "intro-raffle-card";
+
+        const leftDiv = document.createElement("div");
+        leftDiv.style = "display: flex; align-items: center; gap: 12px;";
+
+        const dot = document.createElement("span");
+        dot.className = "intro-color-dot";
+        dot.style.background = item.color;
+
+        const label = document.createElement("h3");
+        label.style = "margin: 0; font-size: 1.1rem; font-weight: 600;";
+        label.textContent = item.label;
+
+        leftDiv.appendChild(dot);
+        leftDiv.appendChild(label);
+
+        const time = document.createElement("small");
+        time.style = "color: var(--text-muted); font-weight: 500;";
+        time.textContent = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        article.appendChild(leftDiv);
+        article.appendChild(time);
+        container.appendChild(article);
+    });
 }
+
+// --- Actions ---
+
+export function addItem() {
+    const labelInput = document.getElementById("new-item-label");
+    const weightInput = document.getElementById("new-item-weight");
+    const label = labelInput.value.trim();
+    if (!label) return;
+    
+    let weight = parseInt(weightInput.value, 10);
+    if (isNaN(weight) || weight < 1) weight = 1;
+
+    const color = COLORS[state.items.length % COLORS.length];
+    state.items.push({ label, color, weight });
+    labelInput.value = "";
+    weightInput.value = "1";
+    
+    saveToCache();
+    renderItems();
+}
+
+export function removeItem(index) {
+    state.items.splice(index, 1);
+    saveToCache();
+    renderItems();
+}
+
+export function resetItems() {
+    if (confirm("項目を初期状態に戻しますか？")) {
+        state.items = [...DEFAULT_ITEMS];
+        saveToCache();
+        renderItems();
+    }
+}
+
+export function clearHistory() {
+    if (confirm("履歴を消去しますか？")) {
+        state.history = [];
+        saveToCache();
+        renderHistory();
+    }
+}
+
+function pickWeightedIndex() {
+    if (state.items.length === 0) return -1;
+    
+    const totalWeight = state.items.reduce((sum, item) => sum + (item.weight || 1), 0);
+    let threshold = Math.random() * totalWeight;
+    
+    for (let i = 0; i < state.items.length; i++) {
+        threshold -= (state.items[i].weight || 1);
+        if (threshold < 0) return i;
+    }
+    return state.items.length - 1;
+}
+
+export function spin() {
+    if (state.spinning || state.items.length === 0) return;
+    
+    const box = document.getElementById("raffle-box");
+    const ticket = document.getElementById("raffle-ticket");
+    const ticketLabel = document.getElementById("ticket-label");
+    const spinButton = document.getElementById("index-spin-button");
+    
+    state.spinning = true;
+    if (spinButton) {
+        spinButton.disabled = true;
+        spinButton.textContent = "抽選中...";
+    }
+
+    // Hide old ticket
+    ticket.classList.remove("showing");
+    box.classList.add("shaking");
+
+    const selectedIndex = pickWeightedIndex();
+    const selected = state.items[selectedIndex];
+    
+    window.setTimeout(() => {
+        box.classList.remove("shaking");
+        
+        // Show ticket
+        ticketLabel.textContent = selected.label;
+        ticket.style.borderLeft = `8px solid ${selected.color}`;
+        ticket.classList.add("showing");
+
+        window.setTimeout(() => {
+            state.spinning = false;
+            if (spinButton) {
+                spinButton.disabled = false;
+                spinButton.textContent = "抽選する";
+            }
+            
+            // Add to history
+            state.history.unshift({
+                ...selected,
+                timestamp: new Date().toISOString()
+            });
+            state.history = state.history.slice(0, 10);
+            
+            saveToCache();
+            renderHistory();
+            openResultModal(selected);
+        }, 800);
+    }, 1500);
+}
+
+// --- Modal Logic ---
 
 function ensureResultModal() {
     let modal = document.getElementById("result-modal");
@@ -63,15 +230,12 @@ function ensureResultModal() {
         <div class="result-modal-backdrop" data-close-modal></div>
         <div class="result-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
             <button class="result-modal-close" type="button" aria-label="閉じる" data-close-modal>×</button>
-            <p class="result-label">選ばれたテーマ</p>
-            <h2 id="result-modal-title"></h2>
-            <p id="result-modal-description"></p>
+            <p class="result-label">選ばれたのは...</p>
+            <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
         </div>
     `;
     modal.addEventListener("click", (event) => {
-        if (event.target.closest("[data-close-modal]")) {
-            closeResultModal();
-        }
+        if (event.target.closest("[data-close-modal]")) closeResultModal();
     });
     document.body.appendChild(modal);
     return modal;
@@ -80,7 +244,6 @@ function ensureResultModal() {
 function openResultModal(selected) {
     const modal = ensureResultModal();
     modal.querySelector("#result-modal-title").textContent = selected.label;
-    modal.querySelector("#result-modal-description").textContent = selected.description;
     modal.classList.add("is-open");
     document.body.classList.add("modal-open");
 }
@@ -92,104 +255,37 @@ function closeResultModal() {
     document.body.classList.remove("modal-open");
 }
 
-async function renderRoulette() {
-    view().innerHTML = `
-        <div class="roulette-layout">
-            <section>
-                <div class="wheel-stage">
-                    <div class="pointer" aria-hidden="true"></div>
-                    <div class="wheel" id="wheel"></div>
-                </div>
-                <div class="action-row">
-                    <button class="btn primary" id="spin-button" disabled>読み込み中...</button>
-                </div>
-            </section>
-            <aside class="side-panel">
-                <div class="legend-card">
-                    <p class="legend-title">候補一覧</p>
-                    <div class="legend-list"></div>
-                </div>
-            </aside>
-        </div>
-    `;
+// --- Init ---
 
-    try {
-        const config = await fetchRoulette();
-        state.config = config;
+function init() {
+    loadFromCache();
+    renderItems();
+    renderHistory();
+    
+    const addButton = document.getElementById("add-item-button");
+    if (addButton) addButton.onclick = addItem;
 
-        renderRouletteShell(config);
-
-        document.querySelector(".legend-list").innerHTML = config.items.map((item) => `
-            <div class="legend-item">
-                <span class="legend-color" style="background:${item.color};"></span>
-                <span class="legend-text">${item.label}</span>
-            </div>
-        `).join("");
-
-        const spinButton = document.getElementById("spin-button");
-        spinButton.textContent = config.spinText;
-        spinButton.disabled = false;
-        spinButton.addEventListener("click", onSpin);
-    } catch (error) {
-        view().innerHTML = `
-            <h1>ルーレット</h1>
-            <div class="result-card error-card">
-                <p>設定の取得に失敗しました。</p>
-                <p>${error.message}</p>
-            </div>
-        `;
+    const resetButton = document.getElementById("reset-items-button");
+    if (resetButton) resetButton.onclick = resetItems;
+    
+    const input = document.getElementById("new-item-label");
+    if (input) {
+        input.onkeypress = (e) => {
+            if (e.key === "Enter") addItem();
+        };
     }
-}
 
-async function onSpin() {
-    if (state.spinning) return;
-    state.spinning = true;
-
-    const button = document.getElementById("spin-button");
-    const wheel = document.getElementById("wheel");
-    closeResultModal();
-
-    button.disabled = true;
-    button.textContent = "回転中...";
-
-    try {
-        const result = await spinRoulette();
-        state.rotation += result.degrees;
-        wheel.style.transform = `rotate(${state.rotation}deg)`;
-
-        window.setTimeout(() => {
-            openResultModal(result.selected);
-        }, 4200);
-    } catch (error) {
-        view().insertAdjacentHTML("beforeend", `
-            <div class="inline-error-card">
-                <p class="result-label">エラー</p>
-                <h2>抽選に失敗しました</h2>
-                <p>${error.message}</p>
-            </div>
-        `);
-    } finally {
-        window.setTimeout(() => {
-            state.spinning = false;
-            button.disabled = false;
-            button.textContent = state.config?.spinText || "もう一度回す";
-        }, 4300);
-    }
-}
-
-function boot() {
-    const year = document.getElementById("y");
-    if (year) year.textContent = new Date().getFullYear();
+    const spinButton = document.getElementById("index-spin-button");
+    if (spinButton) spinButton.onclick = spin;
+    
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-            closeResultModal();
-        }
+        if (event.key === "Escape") closeResultModal();
     });
-    if (location.pathname !== "/") {
-        navigate("/");
-        return;
-    }
-    renderRoulette();
 }
 
-document.addEventListener("DOMContentLoaded", boot);
+// すぐに実行（moduleなのでDOM構築を待つ必要はないが、一応DOMContentLoadedも考慮）
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+} else {
+    init();
+}

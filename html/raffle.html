@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>くじ引き</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="admin-body">
+    <div class="admin-layout">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="wrap content-body">
+                <div id="admin-status" class="admin-notice">設定を確認しています...</div>
+
+                <!-- 1. Selection View (Visible if no ID) -->
+                <div id="view-selection" style="display: none;">
+                    <h1 style="margin-bottom: 8px;">くじ引きを選択</h1>
+                    <p class="admin-section-copy" style="margin-bottom: 32px;">実行したいくじ引きを選択してください。</p>
+                    
+                    <section class="glass-card">
+                        <div id="raffles-empty" class="admin-empty" style="text-align: center; padding: 40px;">作成済みのくじ引きはありません。<br><a href="/dashboard" style="color: var(--accent);">Dashboard</a>から作成できます。</div>
+                        <div id="raffles-list" class="admin-user-list">
+                            <!-- User's raffles will be rendered here -->
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 2. Play View (Visible if ID present) -->
+                <div id="view-play" style="display: none;">
+                    <section class="intro-hero" style="padding-top: 0;">
+                        <div>
+                            <h1 id="raffle-title">Loading...</h1>
+                            <p class="intro-lead" id="raffle-description"></p>
+                            
+                            <div style="margin-top: 48px;">
+                                <h2 style="font-size: 1.25rem; margin-bottom: 20px;">項目一覧</h2>
+                                <div class="glass-card" style="padding: 24px;">
+                                    <div id="item-list" class="legend-list">
+                                        <!-- Items rendered here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <p class="eyebrow" style="margin-bottom: 4px;">Now Playing</p>
+                            <div class="raffle-stage">
+                                <div id="raffle-ticket" class="raffle-ticket">
+                                    <span id="ticket-label"></span>
+                                </div>
+                                <div id="raffle-box" class="raffle-box" onclick="spin()">
+                                    <span class="raffle-box-label">くじ引き</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/js/raffle.js"></script>
+    <script type="module">
+        import { spin } from '/js/raffle.js';
+        window.spin = spin;
+    </script>
+</body>
+
+</html>

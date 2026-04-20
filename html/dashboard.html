@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard | くじ引き</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="admin-body">
+    <div class="admin-layout">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="wrap content-body">
+                <div id="admin-status" class="admin-notice">設定を確認しています...</div>
+
+                <h1 style="margin-bottom: 8px;">Dashboard</h1>
+
+                <div class="admin-grid" style="grid-template-columns: 1fr;">
+                    <section class="glass-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <h2 style="font-size: 1.25rem; margin: 0;">保存済み</h2>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="openCreateModal()" class="btn primary"
+                                    style="padding: 8px 16px; font-size: 0.85rem;">新規作成</button>
+                            </div>
+                        </div>
+                        <div id="users-empty" class="admin-empty">くじ引きはまだありません。</div>
+                        <div id="users-list" class="admin-user-list"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="raffle-modal" class="result-modal">
+        <div class="result-modal-backdrop" onclick="closeRaffleModal()"></div>
+        <div class="result-modal-dialog" style="max-width: 600px; padding: 40px;">
+            <h2 id="modal-title" style="margin-bottom: 24px; border: none;">くじ引きの作成</h2>
+            <form id="raffle-form" class="admin-form">
+                <input type="hidden" id="edit-id">
+                <label class="admin-field">
+                    <span>タイトル</span>
+                    <input type="text" id="modal-raffle-title" placeholder="例: 週末のランチ" required>
+                </label>
+                <label class="admin-field">
+                    <span>説明 (任意)</span>
+                    <input type="text" id="modal-raffle-desc" placeholder="どこに行くか迷った時に">
+                </label>
+
+                <div style="margin-top: 16px;">
+                    <span
+                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">項目設定</span>
+                    <div id="modal-item-list" style="display: grid; gap: 8px; margin-bottom: 12px;">
+                        <!-- Items dynamically added here -->
+                    </div>
+                    <button type="button" onclick="addItemToModal()" class="btn"
+                        style="width: 100%; border-style: dashed;">+ 項目を追加</button>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 32px;">
+                    <button type="button" onclick="closeRaffleModal()" class="btn" style="flex: 1;">キャンセル</button>
+                    <button type="submit" class="btn primary" style="flex: 1;">保存する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="/js/dashboard.js"></script>
+    <script type="module">
+        import { openCreateModal, closeRaffleModal, addItemToModal } from '/js/dashboard.js';
+        window.openCreateModal = openCreateModal;
+        window.closeRaffleModal = closeRaffleModal;
+        window.addItemToModal = addItemToModal;
+    </script>
+</body>
+
+</html>
