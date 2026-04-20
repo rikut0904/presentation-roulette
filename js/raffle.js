@@ -294,19 +294,14 @@ async function init() {
             state.config = targetData;
             viewPlay.style.display = "block";
             document.getElementById("raffle-title").textContent = state.config.title;
-            document.getElementById("raffle-description").textContent = state.config.description || "";
+            document.getElementById("raffle-description").textContent = state.config.description || "説明はありません。";
             renderItemList();
             setStatus("");
-
-            // Auto-fullscreen check after rendering is ready
-            if (params.get("mode") === "fullscreen") {
-                window.toggleFullscreen(true);
-            }
-        } else {
+            } else {
             renderSelectionList(targetData);
             viewSelection.style.display = "block";
             setStatus("");
-        }
+            }
 
     } catch (err) {
         if (err.code === "UNAUTHORIZED") {
