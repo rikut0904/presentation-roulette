@@ -233,34 +233,34 @@ async function init() {
 
     // Sync presentation mode with browser fullscreen state
     document.addEventListener("fullscreenchange", () => {
-        // If user exits fullscreen via browser menu/other means, ensure we cleanup
-        if (!document.fullscreenElement) {
-            if (!document.body.classList.contains("modal-open") && document.body.classList.contains("presentation-mode")) {
+        if (!document.fullscreenElement && !document.body.classList.contains("modal-open")) {
+            if (document.body.classList.contains("presentation-mode")) {
                 window.toggleFullscreen(false);
             }
-            // Always unlock keyboard when not in fullscreen
-            if (navigator.keyboard && navigator.keyboard.unlock) {
-                navigator.keyboard.unlock();
-            }
+        }
+        
+        if (!document.fullscreenElement && navigator.keyboard && navigator.keyboard.unlock) {
+            navigator.keyboard.unlock();
         }
     });
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-            // 1. If modal is open, close it. Keyboard Lock prevents browser from exiting fullscreen.
             if (document.body.classList.contains("modal-open")) {
                 closeModal();
+                
                 e.preventDefault();
+                e.stopImmediatePropagation();
                 return;
             }
 
-            // 2. If in presentation mode and no modal, manually trigger exit
             if (document.body.classList.contains("presentation-mode")) {
                 window.toggleFullscreen(false);
                 e.preventDefault();
+                e.stopImmediatePropagation();
             }
         }
-    }, true);
+    }, { capture: true });
 
     const logoutButton = document.getElementById("logout-button");
     if (logoutButton) {
