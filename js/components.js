@@ -9,7 +9,7 @@ export function renderHeader() {
         <div class="wrap">
             <div class="nav-group">
                 <a href="/dashboard" class="nav-link" data-path="/dashboard">Dashboard</a>
-                <a href="/raffle" class="nav-link" data-path="/raffle">ラッフル</a>
+                <a href="/raffle" class="nav-link" data-path="/raffle">くじ引き</a>
             </div>
             <div class="nav-group">
                 <span id="user-email" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;"></span>

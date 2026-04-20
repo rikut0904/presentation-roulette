@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard | ラッフル</title>
+    <title>Dashboard | くじ引き</title>
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
@@ -21,7 +21,7 @@
                     <section class="glass-card">
                         <div
                             style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                            <h2 style="font-size: 1.25rem; margin: 0;">保存済みラッフル</h2>
+                            <h2 style="font-size: 1.25rem; margin: 0;">保存済みくじ引き</h2>
                             <div style="display: flex; gap: 8px;">
                                 <button id="reload-users" class="btn" style="padding: 8px 16px; font-size: 0.85rem;"
                                     type="button">更新</button>
@@ -29,7 +29,7 @@
                                     style="padding: 8px 16px; font-size: 0.85rem;">新規作成</button>
                             </div>
                         </div>
-                        <div id="users-empty" class="admin-empty">ラッフルはまだありません。</div>
+                        <div id="users-empty" class="admin-empty">くじ引きはまだありません。</div>
                         <div id="users-list" class="admin-user-list"></div>
                     </section>
                 </div>
@@ -41,7 +41,7 @@
     <div id="raffle-modal" class="result-modal">
         <div class="result-modal-backdrop" onclick="closeRaffleModal()"></div>
         <div class="result-modal-dialog" style="max-width: 600px; padding: 40px;">
-            <h2 id="modal-title" style="margin-bottom: 24px; border: none;">ラッフルの作成</h2>
+            <h2 id="modal-title" style="margin-bottom: 24px; border: none;">くじ引きの作成</h2>
             <form id="raffle-form" class="admin-form">
                 <input type="hidden" id="edit-id">
                 <label class="admin-field">

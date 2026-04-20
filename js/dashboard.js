@@ -28,7 +28,7 @@ function renderRaffles(raffles) {
 
     if (!raffles || raffles.length === 0) {
         rafflesEmpty.style.display = "block";
-        rafflesEmpty.textContent = "ラッフルはまだありません。";
+        rafflesEmpty.textContent = "くじ引きはまだありません。";
         return;
     }
 
@@ -100,7 +100,7 @@ function renderRaffles(raffles) {
 }
 
 export function openCreateModal() {
-    document.getElementById("modal-title").textContent = "ラッフルの作成";
+    document.getElementById("modal-title").textContent = "くじ引きの作成";
     document.getElementById("edit-id").value = "";
     document.getElementById("modal-raffle-title").value = "";
     document.getElementById("modal-raffle-desc").value = "";
@@ -112,7 +112,7 @@ export function openCreateModal() {
 }
 
 window.openEditModal = (raffle) => {
-    document.getElementById("modal-title").textContent = "ラッフルの編集";
+    document.getElementById("modal-title").textContent = "くじ引きの編集";
     document.getElementById("edit-id").value = raffle.id;
     document.getElementById("modal-raffle-title").value = raffle.title;
     document.getElementById("modal-raffle-desc").value = raffle.description || "";
@@ -259,7 +259,7 @@ async function saveRaffle(event) {
 }
 
 async function deleteRaffle(id) {
-    if (!confirm("このラッフルを削除しますか？")) {
+    if (!confirm("このくじ引きを削除しますか？")) {
         return;
     }
 
