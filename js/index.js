@@ -229,7 +229,6 @@ function ensureResultModal() {
     modal.innerHTML = `
         <div class="result-modal-backdrop" data-close-modal></div>
         <div class="result-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
-            <button class="result-modal-close" type="button" aria-label="閉じる" data-close-modal>×</button>
             <p class="result-label">選ばれたのは...</p>
             <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
         </div>

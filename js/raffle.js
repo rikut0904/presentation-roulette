@@ -109,7 +109,6 @@ function openResultModal(selected) {
         modal.innerHTML = `
             <div class="result-modal-backdrop" data-close-modal></div>
             <div class="result-modal-dialog">
-                <button class="result-modal-close" type="button" data-close-modal>×</button>
                 <p class="result-label">選ばれたのは...</p>
                 <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
             </div>
