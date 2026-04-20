@@ -38,67 +38,64 @@ function renderRaffles(raffles) {
     if (rafflesEmpty) rafflesEmpty.style.display = "none";
 
     raffles.forEach((raffle) => {
-        const item = document.createElement("div");
-        item.className = "admin-user-item";
+        const card = document.createElement("div");
+        card.className = "raffle-card";
 
-        const summary = document.createElement("div");
-        summary.className = "admin-user-summary";
-
+        const header = document.createElement("div");
+        header.className = "raffle-card-header";
+        
         const title = document.createElement("strong");
-        title.style.color = "var(--text-main)";
-        title.style.fontSize = "1.1rem";
+        title.className = "raffle-card-title";
         title.textContent = raffle.title;
 
-        const count = document.createElement("p");
-        count.style.fontSize = "0.85rem";
-        count.textContent = `${raffle.items ? raffle.items.length : 0} 項目`;
+        const desc = document.createElement("p");
+        desc.className = "raffle-card-desc";
+        desc.textContent = raffle.description || "説明はありません。";
 
-        summary.appendChild(title);
-        summary.appendChild(count);
+        header.appendChild(title);
+        header.appendChild(desc);
 
-        const meta = document.createElement("div");
-        meta.className = "admin-user-meta";
+        const stats = document.createElement("div");
+        stats.className = "raffle-card-stats";
+        
+        const count = document.createElement("span");
+        count.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">list_alt</span> ${raffle.items ? raffle.items.length : 0} 項目`;
+
+        const date = document.createElement("span");
+        const formattedDate = new Date(raffle.updatedAt).toLocaleDateString();
+        date.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_today</span> 更新: ${formattedDate}`;
+
+        stats.appendChild(count);
+        stats.appendChild(date);
 
         const actions = document.createElement("div");
-        actions.style.display = "flex";
-        actions.style.gap = "8px";
+        actions.className = "raffle-card-actions";
 
         const playButton = document.createElement("button");
         playButton.className = "btn primary";
-        playButton.style.padding = "4px 12px";
-        playButton.style.fontSize = "0.8rem";
-        playButton.textContent = "実行";
+        playButton.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; margin-right: 4px;">play_arrow</span> 実行`;
         playButton.onclick = () => window.playRaffle(raffle.id);
 
         const editButton = document.createElement("button");
         editButton.className = "btn";
-        editButton.style.padding = "4px 12px";
-        editButton.style.fontSize = "0.8rem";
-        editButton.textContent = "編集";
+        editButton.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; margin-right: 4px;">edit</span> 編集`;
         editButton.onclick = () => window.openEditModal(raffle);
 
         const deleteButton = document.createElement("button");
-        deleteButton.className = "btn";
-        deleteButton.style.padding = "4px 12px";
-        deleteButton.style.fontSize = "0.8rem";
-        deleteButton.style.color = "#ef476f";
-        deleteButton.textContent = "削除";
+        deleteButton.className = "btn delete-btn";
+        deleteButton.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">delete</span>`;
+        deleteButton.title = "削除";
         deleteButton.onclick = () => window.deleteRaffle(raffle.id);
+        deleteButton.style.flex = "0 0 44px";
 
         actions.appendChild(playButton);
         actions.appendChild(editButton);
         actions.appendChild(deleteButton);
 
-        const updated = document.createElement("small");
-        updated.style.marginTop = "4px";
-        updated.textContent = `更新: ${new Date(raffle.updatedAt).toLocaleDateString()}`;
-
-        meta.appendChild(actions);
-        meta.appendChild(updated);
-
-        item.appendChild(summary);
-        item.appendChild(meta);
-        rafflesList.appendChild(item);
+        card.appendChild(header);
+        card.appendChild(stats);
+        card.appendChild(actions);
+        rafflesList.appendChild(card);
     });
 }
 

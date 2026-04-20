@@ -179,20 +179,46 @@ function renderSelectionList(raffles) {
     if (raffles && raffles.length > 0) {
         rafflesEmpty.style.display = "none";
         raffles.forEach(r => {
-            const item = document.createElement("div");
-            item.className = "admin-user-item";
-            item.style.cursor = "pointer";
-            item.onclick = () => { window.location.href = `/raffle?id=${r.id}`; };
-            item.innerHTML = `
-                <div class="user-info">
-                    <strong>${r.title}</strong>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">${r.items ? r.items.length : 0} 項目</div>
-                </div>
-                <div class="user-actions">
-                    <button class="btn primary">実行</button>
-                </div>
-            `;
-            rafflesList.appendChild(item);
+            const card = document.createElement("div");
+            card.className = "raffle-card";
+            card.style.cursor = "pointer";
+            card.onclick = () => { window.location.href = `/raffle?id=${r.id}`; };
+
+            const header = document.createElement("div");
+            header.className = "raffle-card-header";
+            
+            const title = document.createElement("strong");
+            title.className = "raffle-card-title";
+            title.textContent = r.title;
+
+            const desc = document.createElement("p");
+            desc.className = "raffle-card-desc";
+            desc.textContent = r.description || "説明はありません。";
+
+            header.appendChild(title);
+            header.appendChild(desc);
+
+            const stats = document.createElement("div");
+            stats.className = "raffle-card-stats";
+            
+            const count = document.createElement("span");
+            count.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">list_alt</span> ${r.items ? r.items.length : 0} 項目`;
+
+            const date = document.createElement("span");
+            const formattedDate = new Date(r.updatedAt).toLocaleDateString();
+            date.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_today</span> 更新: ${formattedDate}`;
+
+            stats.appendChild(count);
+            stats.appendChild(date);
+
+            const actions = document.createElement("div");
+            actions.className = "raffle-card-actions";
+            actions.innerHTML = `<button class="btn primary" style="width: 100%"><span class="material-symbols-outlined" style="margin-right: 8px;">play_arrow</span> 実行する</button>`;
+
+            card.appendChild(header);
+            card.appendChild(stats);
+            card.appendChild(actions);
+            rafflesList.appendChild(card);
         });
     } else {
         rafflesEmpty.style.display = "block";
