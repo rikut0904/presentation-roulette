@@ -236,9 +236,20 @@ function ensureResultModal() {
     modal.className = "result-modal";
     modal.innerHTML = `
         <div class="result-modal-backdrop" data-close-modal></div>
-        <div class="result-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
-            <p class="result-label">選ばれたのは...</p>
-            <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
+        <div class="result-modal-dialog result-modal-dialog-compact" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
+            <div class="result-modal-card">
+                <div>
+                    <p class="result-label">選ばれたのは...</p>
+                    <h2 id="result-modal-title" class="result-modal-title"></h2>
+                </div>
+                <div class="result-modal-chip">
+                    <span id="result-modal-swatch" class="result-modal-chip-swatch"></span>
+                    <span id="result-modal-chip-label" class="result-modal-chip-label"></span>
+                </div>
+                <div class="result-modal-actions">
+                    <button type="button" class="btn primary" data-close-modal>閉じる</button>
+                </div>
+            </div>
         </div>
     `;
     modal.addEventListener("click", (event) => {
@@ -251,6 +262,8 @@ function ensureResultModal() {
 function openResultModal(selected) {
     const modal = ensureResultModal();
     modal.querySelector("#result-modal-title").textContent = selected.label;
+    modal.querySelector("#result-modal-chip-label").textContent = selected.label;
+    modal.querySelector("#result-modal-swatch").style.background = selected.color || "var(--accent)";
     modal.classList.add("is-open");
     document.body.classList.add("modal-open");
 }

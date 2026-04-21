@@ -622,6 +622,95 @@ body.modal-open {
     margin-bottom: 16px;
 }
 
+.result-modal-dialog.result-modal-dialog-compact {
+    width: min(560px, calc(100vw - 32px));
+    height: auto;
+    min-height: 0;
+    padding: 40px 32px 28px;
+    border: 1px solid rgba(107, 70, 193, 0.12);
+    background:
+        radial-gradient(circle at top, rgba(216, 180, 254, 0.28), transparent 48%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 245, 255, 0.96));
+    text-align: center;
+}
+
+.result-modal-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.result-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 96px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(107, 70, 193, 0.1);
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.result-modal-copy {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.result-modal-title {
+    margin: 0;
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+    line-height: 1.1;
+    font-weight: 800;
+    word-break: break-word;
+}
+
+.result-modal-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    max-width: 100%;
+    padding: 12px 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(107, 70, 193, 0.12);
+    box-shadow: 0 16px 32px rgba(107, 70, 193, 0.08);
+}
+
+.result-modal-chip-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9);
+}
+
+.result-modal-chip-label {
+    min-width: 0;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.result-modal-actions {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.result-modal-actions .btn {
+    min-width: 140px;
+}
+
 /* Forms */
 .admin-field {
     display: grid;
@@ -789,5 +878,9 @@ body.presentation-mode .exit-presentation:hover {
         flex-direction: column;
         gap: 20px;
         text-align: center;
+    }
+
+    .result-modal-dialog.result-modal-dialog-compact {
+        padding: 32px 20px 24px;
     }
 }
