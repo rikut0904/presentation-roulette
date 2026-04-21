@@ -109,6 +109,9 @@ export function openCreateModal() {
     document.getElementById("edit-id").value = "";
     document.getElementById("modal-raffle-title").value = "";
     document.getElementById("modal-raffle-desc").value = "";
+    const preventDuplicatesCheck = document.getElementById("modal-prevent-duplicates");
+    if (preventDuplicatesCheck) preventDuplicatesCheck.checked = false;
+    
     if (modalItemList) {
         modalItemList.innerHTML = "";
         addItemToModal();
@@ -124,6 +127,8 @@ window.openEditModal = (raffle) => {
     document.getElementById("edit-id").value = raffle.id;
     document.getElementById("modal-raffle-title").value = raffle.title;
     document.getElementById("modal-raffle-desc").value = raffle.description || "";
+    const preventDuplicatesCheck = document.getElementById("modal-prevent-duplicates");
+    if (preventDuplicatesCheck) preventDuplicatesCheck.checked = !!raffle.preventDuplicates;
     
     if (modalItemList) {
         modalItemList.innerHTML = "";
@@ -145,59 +150,38 @@ export function addItemToModal(label = "", color = "", weight = 1) {
     if (!modalItemList) return;
     const row = document.createElement("div");
     row.className = "modal-item-row";
-    row.style.display = "flex";
-    row.style.gap = "8px";
-    row.style.alignItems = "center";
-    row.style.marginBottom = "8px";
 
     const resolvedColor = color || COLORS[modalItemList.children.length % COLORS.length];
 
     const colorInput = document.createElement("input");
     colorInput.type = "color";
-    colorInput.className = "item-color";
+    colorInput.className = "item-color-input";
     colorInput.value = resolvedColor;
-    colorInput.style.width = "40px";
-    colorInput.style.height = "40px";
-    colorInput.style.padding = "2px";
-    colorInput.style.border = "1px solid var(--glass-border)";
-    colorInput.style.borderRadius = "8px";
-    colorInput.style.cursor = "pointer";
 
     const labelInput = document.createElement("input");
     labelInput.type = "text";
-    labelInput.className = "item-label";
+    labelInput.className = "item-label-input";
     labelInput.value = label;
     labelInput.placeholder = "項目名";
     labelInput.required = true;
-    labelInput.style.flex = "1";
-    labelInput.style.border = "1px solid var(--glass-border)";
-    labelInput.style.borderRadius = "8px";
-    labelInput.style.padding = "8px 12px";
 
     const weightInput = document.createElement("input");
     weightInput.type = "number";
-    weightInput.className = "item-weight";
+    weightInput.className = "item-weight-input";
     weightInput.min = "1";
     weightInput.step = "1";
     weightInput.value = String(normalizeWeight(weight));
-    weightInput.title = "抽選比重";
-    weightInput.setAttribute("aria-label", "抽選比重");
-    weightInput.style.width = "72px";
-    weightInput.style.border = "1px solid var(--glass-border)";
-    weightInput.style.borderRadius = "8px";
-    weightInput.style.padding = "8px 10px";
-    weightInput.style.textAlign = "center";
+    weightInput.title = "比重";
 
     const removeButton = document.createElement("button");
     removeButton.type = "button";
-    removeButton.innerHTML = "&times;";
-    removeButton.style.background = "none";
-    removeButton.style.border = "none";
-    removeButton.style.color = "#ef476f";
-    removeButton.style.fontSize = "1.2rem";
-    removeButton.style.cursor = "pointer";
-    removeButton.style.padding = "0 8px";
-    removeButton.onclick = () => row.remove();
+    removeButton.className = "item-remove-btn";
+    removeButton.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">delete</span>`;
+    removeButton.onclick = () => {
+        row.style.opacity = "0";
+        row.style.transform = "translateX(10px)";
+        setTimeout(() => row.remove(), 150);
+    };
 
     row.appendChild(colorInput);
     row.appendChild(labelInput);
@@ -231,15 +215,16 @@ async function saveRaffle(event) {
     if (!modalItemList) return;
     const id = document.getElementById("edit-id").value;
     const items = Array.from(modalItemList.children).map((row) => ({
-        label: row.querySelector(".item-label").value,
-        color: row.querySelector(".item-color").value,
-        weight: normalizeWeight(row.querySelector(".item-weight").value),
+        label: row.querySelector(".item-label-input").value,
+        color: row.querySelector(".item-color-input").value,
+        weight: normalizeWeight(row.querySelector(".item-weight-input").value),
     }));
 
     const payload = {
         id: id || "0",
         title: document.getElementById("modal-raffle-title").value,
         description: document.getElementById("modal-raffle-desc").value,
+        preventDuplicates: document.getElementById("modal-prevent-duplicates").checked,
         items,
     };
 
@@ -264,46 +249,36 @@ async function saveRaffle(event) {
         clearCache();
         await initDashboard();
     } catch (error) {
-        alert(error.message);
-    }
-}
-
-async function deleteRaffle(id) {
-    if (!confirm("このくじ引きを削除しますか？")) {
-        return;
-    }
-
-    const response = await fetch(`/api/dashboard/raffles/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-    });
-
-    if (response.status === 401) {
-        await logoutUser();
-        return;
-    }
-
-    if (response.ok) {
-        clearCache();
-        await initDashboard();
+        setStatus(error.message, "error");
     }
 }
 
 async function init() {
     renderHeader();
-
-    const logoutButton = document.getElementById("logout-button");
-    if (logoutButton) {
-        logoutButton.onclick = async () => {
-            await logoutUser();
-        };
-    }
-
+    
     if (raffleForm) {
         raffleForm.onsubmit = saveRaffle;
     }
     
-    window.deleteRaffle = deleteRaffle;
+    window.deleteRaffle = async (id) => {
+        if (!confirm("このくじ引きを削除しますか？")) return;
+        try {
+            const res = await fetch(`/api/dashboard/raffles/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (res.status === 401) {
+                await logoutUser();
+                return;
+            }
+            if (!res.ok) throw new Error("削除に失敗しました");
+            clearCache();
+            await initDashboard();
+        } catch (error) {
+            setStatus(error.message, "error");
+        }
+    };
+
     window.playRaffle = (id) => {
         window.location.href = `/raffle?id=${id}`;
     };

@@ -3,6 +3,7 @@ package raffle
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"presentation-raffle/internal/domain/entity"
 	"presentation-raffle/internal/domain/repository"
 	"time"
@@ -20,14 +21,15 @@ func NewPostgresRaffleRepository(db *gorm.DB) repository.RaffleRepository {
 }
 
 type raffleModel struct {
-	ID          string `gorm:"primaryKey;size:36"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt `gorm:"index"`
-	UserUID     string         `gorm:"not null;index"`
-	Title       string         `gorm:"not null"`
-	Description string
-	Items       []byte `gorm:"type:jsonb;not null"`
+	ID                string `gorm:"primaryKey;size:36"`
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	DeletedAt         gorm.DeletedAt `gorm:"index"`
+	UserUID           string         `gorm:"not null;index"`
+	Title             string         `gorm:"not null"`
+	Description       string
+	PreventDuplicates bool   `gorm:"default:false"`
+	Items             []byte `gorm:"type:jsonb;not null"`
 }
 
 func (raffleModel) TableName() string {
@@ -67,22 +69,23 @@ func (r *PostgresRaffleRepository) Save(ctx context.Context, raffle entity.Raffl
 	}
 
 	model := raffleModel{
-		UserUID:     raffle.UserUID,
-		Title:       raffle.Title,
-		Description: raffle.Description,
-		Items:       itemsJSON,
+		UserUID:           raffle.UserUID,
+		Title:             raffle.Title,
+		Description:       raffle.Description,
+		PreventDuplicates: raffle.PreventDuplicates,
+		Items:             itemsJSON,
 	}
 
 	if raffle.ID != "" && raffle.ID != "0" {
+		// 更新処理：指定された ID のレコードが存在するか確認
 		var existing raffleModel
-		if err := r.db.WithContext(ctx).Where("id = ? AND user_uid = ?", raffle.ID, raffle.UserUID).First(&existing).Error; err == nil {
-			model.ID = existing.ID
-			model.CreatedAt = existing.CreatedAt
+		if err := r.db.WithContext(ctx).Where("id = ? AND user_uid = ?", raffle.ID, raffle.UserUID).First(&existing).Error; err != nil {
+			return entity.Raffle{}, fmt.Errorf("failed to update: raffle with ID %s not found for this user: %w", raffle.ID, err)
 		}
-	}
-
-	// 新規作成の場合は UUID を生成
-	if model.ID == "" {
+		model.ID = existing.ID
+		model.CreatedAt = existing.CreatedAt
+	} else {
+		// 新規作成処理：新しい UUID を生成
 		model.ID = uuid.New().String()
 	}
 
@@ -104,12 +107,13 @@ func toEntity(m raffleModel) (entity.Raffle, error) {
 	}
 
 	return entity.Raffle{
-		ID:          m.ID,
-		UserUID:     m.UserUID,
-		Title:       m.Title,
-		Description: m.Description,
-		Items:       items,
-		CreatedAt:   m.CreatedAt,
-		UpdatedAt:   m.UpdatedAt,
+		ID:                m.ID,
+		UserUID:           m.UserUID,
+		Title:             m.Title,
+		Description:       m.Description,
+		PreventDuplicates: m.PreventDuplicates,
+		Items:             items,
+		CreatedAt:         m.CreatedAt,
+		UpdatedAt:         m.UpdatedAt,
 	}, nil
 }
