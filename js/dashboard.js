@@ -111,6 +111,7 @@ export function openCreateModal() {
     document.getElementById("modal-raffle-desc").value = "";
     const preventDuplicatesCheck = document.getElementById("modal-prevent-duplicates");
     if (preventDuplicatesCheck) preventDuplicatesCheck.checked = false;
+    
     if (modalItemList) {
         modalItemList.innerHTML = "";
         addItemToModal();
@@ -175,11 +176,11 @@ export function addItemToModal(label = "", color = "", weight = 1) {
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "item-remove-btn";
-    removeButton.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.25rem;">delete</span>`;
+    removeButton.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem;">delete</span>`;
     removeButton.onclick = () => {
         row.style.opacity = "0";
-        row.style.transform = "translateX(20px)";
-        setTimeout(() => row.remove(), 200);
+        row.style.transform = "translateX(10px)";
+        setTimeout(() => row.remove(), 150);
     };
 
     row.appendChild(colorInput);
@@ -214,9 +215,9 @@ async function saveRaffle(event) {
     if (!modalItemList) return;
     const id = document.getElementById("edit-id").value;
     const items = Array.from(modalItemList.children).map((row) => ({
-        label: row.querySelector(".item-label").value,
-        color: row.querySelector(".item-color").value,
-        weight: normalizeWeight(row.querySelector(".item-weight").value),
+        label: row.querySelector(".item-label-input").value,
+        color: row.querySelector(".item-color-input").value,
+        weight: normalizeWeight(row.querySelector(".item-weight-input").value),
     }));
 
     const payload = {
@@ -248,46 +249,36 @@ async function saveRaffle(event) {
         clearCache();
         await initDashboard();
     } catch (error) {
-        alert(error.message);
-    }
-}
-
-async function deleteRaffle(id) {
-    if (!confirm("このくじ引きを削除しますか？")) {
-        return;
-    }
-
-    const response = await fetch(`/api/dashboard/raffles/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-    });
-
-    if (response.status === 401) {
-        await logoutUser();
-        return;
-    }
-
-    if (response.ok) {
-        clearCache();
-        await initDashboard();
+        setStatus(error.message, "error");
     }
 }
 
 async function init() {
     renderHeader();
-
-    const logoutButton = document.getElementById("logout-button");
-    if (logoutButton) {
-        logoutButton.onclick = async () => {
-            await logoutUser();
-        };
-    }
-
+    
     if (raffleForm) {
         raffleForm.onsubmit = saveRaffle;
     }
     
-    window.deleteRaffle = deleteRaffle;
+    window.deleteRaffle = async (id) => {
+        if (!confirm("このくじ引きを削除しますか？")) return;
+        try {
+            const res = await fetch(`/api/dashboard/raffles/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (res.status === 401) {
+                await logoutUser();
+                return;
+            }
+            if (!res.ok) throw new Error("削除に失敗しました");
+            clearCache();
+            await initDashboard();
+        } catch (error) {
+            setStatus(error.message, "error");
+        }
+    };
+
     window.playRaffle = (id) => {
         window.location.href = `/raffle?id=${id}`;
     };
