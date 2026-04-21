@@ -38,36 +38,38 @@
     <div id="raffle-modal" class="result-modal">
         <div class="result-modal-backdrop" onclick="closeRaffleModal()"></div>
         <div class="result-modal-dialog" style="max-width: 600px; padding: 40px;">
-            <h2 id="modal-title" style="margin-bottom: 24px; border: none;">くじ引きの作成</h2>
-            <form id="raffle-form" class="admin-form">
-                <input type="hidden" id="edit-id">
-                <label class="admin-field">
-                    <span>タイトル</span>
-                    <input type="text" id="modal-raffle-title" placeholder="例: 週末のランチ" required>
-                </label>
-                <label class="admin-field">
-                    <span>説明 (任意)</span>
-                    <input type="text" id="modal-raffle-desc" placeholder="どこに行くか迷った時に">
-                </label>
-
-                <div style="margin-top: 16px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-main);">
-                        <input type="checkbox" id="modal-prevent-duplicates" style="width: 18px; height: 18px; cursor: pointer;">
-                        <span>一度引いた項目をリセットまで除外する</span>
+            <h2 id="modal-title" style="margin-bottom: 24px; border: none;">くじ引きの編集</h2>
+            <form id="raffle-form" class="admin-form" style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+                <div class="modal-body-scroll">
+                    <input type="hidden" id="edit-id">
+                    <label class="admin-field">
+                        <span>タイトル</span>
+                        <input type="text" id="modal-raffle-title" placeholder="例: 週末のランチ" required>
                     </label>
-                </div>
+                    <label class="admin-field" style="margin-top: 16px;">
+                        <span>説明 (任意)</span>
+                        <input type="text" id="modal-raffle-desc" placeholder="どこに行くか迷った時に">
+                    </label>
 
-                <div style="margin-top: 24px;">
-                    <span
-                        style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">項目設定</span>
-                    <div id="modal-item-list" style="display: grid; gap: 8px; margin-bottom: 12px;">
-                        <!-- Items dynamically added here -->
+                    <div style="margin-top: 16px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-main);">
+                            <input type="checkbox" id="modal-prevent-duplicates" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>一度引いた項目をリセットまで除外する</span>
+                        </label>
                     </div>
-                    <button type="button" onclick="addItemToModal()" class="btn"
-                        style="width: 100%; border-style: dashed;">+ 項目を追加</button>
+
+                    <div style="margin-top: 32px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">項目設定</span>
+                            <button type="button" onclick="addItemToModal()" class="btn" style="padding: 4px 12px; font-size: 0.8rem;">+ 追加</button>
+                        </div>
+                        <div id="modal-item-list">
+                            <!-- Items dynamically added here -->
+                        </div>
+                    </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; margin-top: 32px;">
+                <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
                     <button type="button" onclick="closeRaffleModal()" class="btn" style="flex: 1;">キャンセル</button>
                     <button type="submit" class="btn primary" style="flex: 1;">保存</button>
                 </div>

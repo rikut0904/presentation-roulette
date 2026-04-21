@@ -149,8 +149,13 @@ function openResultModal(selected) {
         modal.innerHTML = `
             <div class="result-modal-backdrop" data-close-modal></div>
             <div class="result-modal-dialog">
-                <p class="result-label">選ばれたのは...</p>
-                <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0;"></h2>
+                <div class="modal-body-scroll" style="text-align: center; margin: 0;">
+                    <p class="result-label">選ばれたのは...</p>
+                    <h2 id="result-modal-title" style="font-size: 3rem; text-align: center; margin: 20px 0; border: none; padding: 0; line-height: 1.2; word-break: break-word;"></h2>
+                </div>
+                <div style="margin-top: 24px; text-align: center;">
+                    <button type="button" class="btn primary" data-close-modal style="padding: 12px 32px;">閉じる</button>
+                </div>
             </div>
         `;
         modal.addEventListener("click", (e) => {

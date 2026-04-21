@@ -594,15 +594,116 @@ h1 {
     position: relative;
     background: white;
     border-radius: 32px;
-    padding: 60px 40px;
-    width: min(480px, 90vw);
+    padding: 40px;
+    width: min(640px, 95vw);
+    max-height: 90vh;
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.15);
-    transform: scale(0.9);
+    transform: scale(0.95);
     transition: all 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
+    display: flex;
+    flex-direction: column;
 }
 
 .result-modal.is-open .result-modal-dialog {
     transform: scale(1);
+}
+
+.modal-body-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin: 16px 0;
+}
+
+/* Modern Scrollbar */
+.modal-body-scroll::-webkit-scrollbar,
+#modal-item-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-track,
+#modal-item-list::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-thumb,
+#modal-item-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-thumb:hover,
+#modal-item-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* Raffle Item Rows (Compact & Clean) */
+.modal-item-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #f9fafb;
+    padding: 10px 14px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s;
+}
+
+.modal-item-row:hover {
+    border-color: var(--accent-glow);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.item-color-input {
+    width: 32px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    flex-shrink: 0;
+}
+
+.item-label-input {
+    flex: 1;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    background: white;
+}
+
+.item-weight-input {
+    width: 64px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.item-remove-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-remove-btn:hover {
+    background: #fee2e2;
+    color: #ef476f;
 }
 
 /* Presentation Mode */
