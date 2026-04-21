@@ -12,8 +12,8 @@ export function renderHeader() {
                 <a href="/raffle" class="nav-link" data-path="/raffle">くじ引き</a>
             </div>
             <div class="nav-group">
-                <span id="user-email" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;"></span>
-                <button id="logout-button" class="btn" style="padding: 6px 12px; font-size: 0.85rem; margin-left: 12px;">ログアウト</button>
+                <span id="user-email" class="nav-user-email"></span>
+                <button id="logout-button" class="btn nav-logout-btn">ログアウト</button>
             </div>
         </div>
     `;
