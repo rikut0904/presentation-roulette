@@ -109,6 +109,8 @@ export function openCreateModal() {
     document.getElementById("edit-id").value = "";
     document.getElementById("modal-raffle-title").value = "";
     document.getElementById("modal-raffle-desc").value = "";
+    const preventDuplicatesCheck = document.getElementById("modal-prevent-duplicates");
+    if (preventDuplicatesCheck) preventDuplicatesCheck.checked = false;
     if (modalItemList) {
         modalItemList.innerHTML = "";
         addItemToModal();
@@ -124,6 +126,8 @@ window.openEditModal = (raffle) => {
     document.getElementById("edit-id").value = raffle.id;
     document.getElementById("modal-raffle-title").value = raffle.title;
     document.getElementById("modal-raffle-desc").value = raffle.description || "";
+    const preventDuplicatesCheck = document.getElementById("modal-prevent-duplicates");
+    if (preventDuplicatesCheck) preventDuplicatesCheck.checked = !!raffle.preventDuplicates;
     
     if (modalItemList) {
         modalItemList.innerHTML = "";
@@ -240,6 +244,7 @@ async function saveRaffle(event) {
         id: id || "0",
         title: document.getElementById("modal-raffle-title").value,
         description: document.getElementById("modal-raffle-desc").value,
+        preventDuplicates: document.getElementById("modal-prevent-duplicates").checked,
         items,
     };
 

@@ -5,6 +5,7 @@ import { logoutUser } from "./auth.js";
 const state = {
     config: null,
     spinning: false,
+    excludedIndices: new Set(),
 };
 
 const statusElement = document.getElementById("admin-status");
@@ -17,6 +18,7 @@ const ticket = document.getElementById("raffle-ticket");
 const ticketLabel = document.getElementById("ticket-label");
 const spinButton = document.getElementById("spin-button");
 const itemList = document.getElementById("item-list");
+const resetPoolButton = document.getElementById("reset-pool-button");
 
 function unauthorizedError() {
     const error = new Error("Unauthorized");
@@ -31,17 +33,30 @@ function getItemWeight(item) {
 
 function renderItemList() {
     itemList.innerHTML = "";
-    state.config.items.forEach(item => {
+    const fragment = document.createDocumentFragment();
+    state.config.items.forEach((item, index) => {
+        const isExcluded = state.excludedIndices.has(index);
         const div = document.createElement("div");
         div.className = "legend-item";
+        if (isExcluded) {
+            div.style.opacity = "0.3";
+            div.style.textDecoration = "line-through";
+            div.style.filter = "grayscale(1)";
+        }
         div.innerHTML = `
             <span class="legend-color" style="background: ${item.color}"></span>
             <div style="display: flex; justify-content: space-between; width: 100%;">
                 <span>${item.label}</span>
             </div>
         `;
-        itemList.appendChild(div);
+        fragment.appendChild(div);
     });
+    itemList.appendChild(fragment);
+
+    // Show reset button only if we have excluded items
+    if (resetPoolButton) {
+        resetPoolButton.style.display = state.excludedIndices.size > 0 ? "flex" : "none";
+    }
 }
 
 // --- Actions ---
@@ -49,6 +64,16 @@ function renderItemList() {
 export function spin() {
     if (state.spinning || !state.config || state.config.items.length === 0) return;
     
+    // Filter available items
+    const availableIndices = state.config.items
+        .map((_, index) => index)
+        .filter(index => !state.excludedIndices.has(index));
+
+    if (availableIndices.length === 0) {
+        alert("すべての項目が抽出されました。リセットしてください。");
+        return;
+    }
+
     state.spinning = true;
     if (spinButton) {
         spinButton.disabled = true;
@@ -59,9 +84,8 @@ export function spin() {
     ticket.classList.remove("showing");
     box.classList.add("shaking");
 
-    const items = state.config.items;
-    const selectedIndex = pickWeightedIndex(items);
-    const selected = items[selectedIndex];
+    const selectedIndex = pickWeightedIndex(availableIndices);
+    const selected = state.config.items[selectedIndex];
 
     window.setTimeout(() => {
         box.classList.remove("shaking");
@@ -78,27 +102,43 @@ export function spin() {
                 spinButton.textContent = "抽選する";
             }
             
+            // Add to excluded if prevention is ON
+            if (state.config.preventDuplicates) {
+                state.excludedIndices.add(selectedIndex);
+                renderItemList();
+            }
+            
             openResultModal(selected);
         }, 800);
     }, 1500);
 }
 
-function pickWeightedIndex(items) {
+function pickWeightedIndex(availableIndices) {
+    const items = availableIndices.map(i => state.config.items[i]);
     const totalWeight = items.reduce((sum, item) => sum + getItemWeight(item), 0);
+    
     if (totalWeight <= 0) {
-        return Math.floor(Math.random() * items.length);
+        return availableIndices[Math.floor(Math.random() * availableIndices.length)];
     }
 
     let threshold = Math.random() * totalWeight;
-    for (let index = 0; index < items.length; index += 1) {
-        threshold -= getItemWeight(items[index]);
+    for (let i = 0; i < availableIndices.length; i++) {
+        threshold -= getItemWeight(items[i]);
         if (threshold < 0) {
-            return index;
+            return availableIndices[i];
         }
     }
 
-    return items.length - 1;
+    return availableIndices[availableIndices.length - 1];
 }
+
+window.resetPool = () => {
+    if (state.excludedIndices.size === 0) return;
+    if (confirm("除外された項目をすべて元に戻しますか？")) {
+        state.excludedIndices.clear();
+        renderItemList();
+    }
+};
 
 function openResultModal(selected) {
     let modal = document.getElementById("result-modal");

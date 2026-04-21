@@ -9,11 +9,12 @@ type RaffleItem struct {
 }
 
 type Raffle struct {
-	ID          string         `json:"id"`
-	UserUID     string         `json:"userUid"`
-	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	Items       []RaffleItem `json:"items"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
+        ID                string         `json:"id"`
+        UserUID           string         `json:"userUid"`
+        Title             string         `json:"title"`
+        Description       string         `json:"description"`
+        PreventDuplicates bool           `json:"preventDuplicates"`
+        Items             []RaffleItem `json:"items"`
+        CreatedAt         time.Time      `json:"createdAt"`
+        UpdatedAt         time.Time      `json:"updatedAt"`
 }
