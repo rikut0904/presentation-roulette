@@ -173,6 +173,210 @@ body.modal-open {
     font-weight: 800;
 }
 
+.section-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+
+/* Index / Raffle Common Layout */
+.intro-hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 40px;
+    padding: 60px 0;
+    align-items: start;
+}
+
+.intro-content {
+    margin-top: 48px;
+}
+
+.intro-lead {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 500px;
+}
+
+/* Item Editor (Index) Styles */
+.item-editor-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.item-editor-input {
+    flex: 1;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.item-editor-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: white;
+}
+
+.item-editor-footer {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.reset-link-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-decoration: underline;
+}
+
+/* Raffle (Lottery Box) Style */
+.raffle-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: 40px 20px;
+    min-height: 400px;
+}
+
+.raffle-box {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    background: linear-gradient(145deg, #7b2cbf, var(--accent));
+    border-radius: 24px;
+    box-shadow: 
+        0 20px 50px rgba(107, 70, 193, 0.3),
+        inset 0 -8px 0 rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.raffle-box:hover:not(.shaking) {
+    transform: translateY(-5px) scale(1.02);
+}
+
+.raffle-box::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    width: 100px;
+    height: 100px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 50%;
+    box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.raffle-box-label {
+    color: white;
+    font-weight: 800;
+    font-size: 1.2rem;
+    margin-top: 60px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.raffle-box.shaking {
+    animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+/* Ticket Animation */
+.raffle-ticket {
+    position: absolute;
+    bottom: 50%;
+    width: 180px;
+    height: 100px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transform: translateY(100px) scale(0);
+    opacity: 0;
+    z-index: 5;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.raffle-ticket.showing {
+    transform: translateY(-80px) scale(1.1);
+    opacity: 1;
+}
+/* Legend & History List */
+.legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 12px;
+}
+
+/* Custom Scrollbar for better UX */
+.legend-list::-webkit-scrollbar {
+    width: 6px;
+}
+.legend-list::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+.legend-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    transition: all 0.2s;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* Dashboard Specific Styles */
 .admin-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -185,7 +389,6 @@ body.modal-open {
     gap: 20px;
 }
 
-/* Card Style */
 .raffle-card {
     background: white;
     border: 1px solid var(--glass-border);
@@ -253,7 +456,7 @@ body.modal-open {
     padding: 10px;
 }
 
-/* MODALS - 2-Pane Layout */
+/* MODALS - 2-Pane Layout (Dashboard Edit) */
 .result-modal {
     position: fixed;
     inset: 0;
@@ -329,7 +532,6 @@ body.modal-open {
     margin-top: 12px;
 }
 
-/* Custom Scrollbar */
 .modal-items-scroll::-webkit-scrollbar {
     width: 5px;
 }
@@ -338,7 +540,6 @@ body.modal-open {
     border-radius: 10px;
 }
 
-/* Raffle Item Rows */
 .modal-item-row {
     display: flex;
     gap: 12px;
@@ -405,17 +606,20 @@ body.modal-open {
     min-width: 100px;
 }
 
-/* Responsive (Mobile) */
-@media (max-width: 850px) {
-    .modal-split-layout {
-        flex-direction: column;
-        overflow-y: auto;
-    }
-    .modal-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #f1f5f9;
-    }
+/* Result Modal Specifics */
+.modal-body-scroll {
+    overflow-y: auto;
+    max-height: 60vh;
+    padding: 20px;
+}
+
+.result-label {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
 }
 
 /* Forms */
@@ -453,4 +657,137 @@ body.modal-open {
     background: rgba(107, 70, 193, 0.08);
     color: var(--accent);
     margin-bottom: 24px;
+}
+
+/* Site Footer */
+.site-footer {
+    padding: 60px 0;
+    border-top: 1px solid var(--glass-border);
+    margin-top: 80px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-copy {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.footer-nav {
+    display: flex;
+    gap: 32px;
+}
+
+.footer-nav-link {
+    font-size: 1rem;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-nav-link.primary {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.footer-nav-link.secondary {
+    color: var(--text-muted);
+}
+
+/* Presentation Mode */
+body.presentation-mode {
+    background-image: radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.15) 0px, transparent 80%);
+    overflow: hidden;
+}
+
+body.presentation-mode .admin-navbar,
+body.presentation-mode #view-selection,
+body.presentation-mode .main-content > .wrap > .admin-notice,
+body.presentation-mode #view-play > .intro-hero > div:first-child,
+body.presentation-mode .site-footer {
+    display: none !important;
+}
+
+body.presentation-mode .main-content,
+body.presentation-mode .content-body,
+body.presentation-mode .main-content > .wrap {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.presentation-mode #view-play {
+    display: flex !important;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+body.presentation-mode #view-play > .intro-hero {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 800px;
+    padding: 0;
+    margin: 0;
+}
+
+body.presentation-mode .raffle-stage {
+    min-height: 500px;
+    transform: scale(1.2);
+}
+
+body.presentation-mode .exit-presentation {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+body.presentation-mode .exit-presentation:hover {
+    opacity: 1;
+}
+
+/* Responsive Styles */
+@media (max-width: 920px) {
+    .intro-hero {
+        grid-template-columns: 1fr;
+        padding: 40px 0;
+        gap: 24px;
+    }
+    
+    .intro-content {
+        margin-top: 24px;
+    }
+
+    .raffle-stage {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 850px) {
+    .modal-split-layout {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .modal-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
 }
